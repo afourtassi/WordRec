@@ -1,0 +1,220 @@
+<!-- ## Code -->
+<html>
+<head>
+	<title>Form/Concept experiment </title>
+	<!-- Include the [jQuery library](http://jquery.com/), which helps you manipulate HTML elements from JS. -->
+	<script src="jquery-1.11.2.min.js"></script>
+	<!-- [mmturkey]: http://github.com/longouyang/mmturkey -->
+	<script src="mmturkey-0.6.js"></script>
+	<link rel="stylesheet" href="style.css" />
+
+</head>
+<body>
+
+<!-- The instructions slide. -->
+<div class="slide" id="instructions">
+  <div style="width: 500px; margin: 0 auto; text-align: center; background-color: #8C1516; padding: 20px 15px 10px 10px">
+    <img src="images/stanford.png" height="46" width="360" alt="Stanford University">
+  </div>
+		<p id='logo-text'>Stanford Language and Cognition Lab</p>
+	<p class="block-text">
+        This is an experiment that tests aspects of human word learning. The experiment involves audio sequences. Please make sure that no music is played in the background. Put your headphones on or make sure you are in a quiet environment. <br><br> The experiment takes around 10 minutes in total! <br><br> Warning: if you are using Internet Explorer, some aspects of the experiment might not function properly! 
+        </p>
+
+
+	<!-- Button to start the experiment. <code>this.blur()</code> removes the focus from the button, if the user pressed the button by using the keyboard, rather than the mouse. -->
+	<button type="button" onclick="this.blur(); experiment.next()">Start</button>
+	<!-- Legal blurb that we're required to show. -->
+
+     <!--<p class="block-text"><br> <b> Note: you won't be able to preview this HIT before accepting it because it's so short. </b></p>-->
+
+  <p class="block-text" id="legal">By answering the following questions, you are participating in a study being performed by cognitive scientists in the Stanford Department of Psychology. If you have questions about this research, please contact us at <a href="mailto://languagecoglab@gmail.com.">languagecoglab@gmail.com</a>. You must be  at least 18 years old to participate. Your participation in this research is voluntary. You may decline to answer any or all of the following questions. You may decline further participation, at any time, without adverse consequences. Your anonymity is assured; the researchers who have requested your participation will not receive any personal information about you. Note however that we have recently been made aware that your public Amazon.com profile can be accessed via your worker ID if you do not choose to opt out. If you would like to opt out of this feature, you may follow instructions available <a href="https://www.amazon.com/gp/help/customer/display.html?nodeId=16465241">here</a>.</p>
+</div>
+<!-- The "stage" slide - where the bulk of the experiment will be displayed. Again, note the use of <code>{{}}</code>. -->
+<div class="slide" id="stage" style="display:table;">
+
+    <audio id='sound_left' autoplay='autoplay'></audio>
+    <audio id='sound_right' autoplay='autoplay'></audio>
+
+    <table id="hello" width="80%" border="0" cellspacing="20" cellpadding="0" align="center">
+        <tr>
+        <td valign="top">
+
+    <div id="word_left">
+        <p id="pic_left">{{}}</p>
+
+    </div>
+    <div id="word_right">
+        <p id="pic_right">{{}}</p>
+
+    </div>
+
+    </td>
+</tr>
+        <tr>
+<td valign="bottom">
+
+        <div id="alien">
+            <p id="pic_alien" align="center"></p>
+     </div>
+    </td>
+            </tr>
+        <tr>
+         <td>
+             <div id="intruct_text">
+                 <p class="question-text">Press <span class="same-key">{{}}</span> (for 'same') or <span class="different-key">{{}}</span> (for 'different') </p>
+    </div>
+             </td>
+</tr>
+</table>
+
+</div>
+
+<!-- Instruction for training. -->
+<div class="slide" id="preTask_instructions">
+
+  <br>
+
+    <p id="MyPreTask" class="block-text">{{}}</p>
+
+    <center><p id=task_pic>{{}}</p></center>
+    <br>
+    <p><center><img src='images/alien1.png' height='120' width='200'></center> </p>
+    
+    <p><center><button type="button" onclick="this.blur(); experiment.next()">Continue</button></center></p>
+
+</div>
+
+<!-- Instructions for real 1 -->
+<div class="slide" id="Task_instructions">
+
+  <br>
+
+    <p id="MyTask" class="block-text">{{}}</p> 
+
+  <table align="center">
+      <tr>
+
+      <td>
+          <p><center><img src='images/alien1.png' height='120' width='200'></center> </p>
+      </td>
+          </tr>
+      <tr>
+    <td align="center">
+      <button type="button" id="nextButton_choice" onClick="this.blur(); experiment.next()"> Continue</button>
+    </td>
+    <tr><td align="center">
+
+    </td></tr>
+
+  </table>
+
+</div>
+    
+
+    
+    <!-- Instructions for different conditions -->
+<div class="slide" id="empty_slide">
+    <br>
+    
+    <p id="my_empty_slide" class="block-text">{{}}</p>
+
+  <br>
+    
+     <table align="center">
+      <tr>
+
+      <td>
+          <p id="my_picture" >{{}} </p>
+      </td>
+          </tr>
+      <tr>
+    <td align="center">
+      <button type="button" id="nextButton_choice" onClick="this.blur(); experiment.next()"> Continue</button>
+    </td>
+    <tr><td align="center">
+
+    </td></tr>
+
+  </table>
+
+  
+
+</div>
+    
+<div class="slide" id="briefing">
+    <br><p><center>You have finished the experiment. Thank you for your participation!<br> Before submitting the data, please answer the following questions. <br>The answers are totally confidential and will not affect the approval of your HIT</center></p>
+    
+    <p><b>What is your age?</b></p>
+                  <p>
+                    <select name="age" id="age" form="demographics">
+                      <option value="">Choose an age</option>
+                      <option value="0-10">&nbsp;0-10</option>
+                      <option value="20-29">10-19</option>
+                      <option value="20-29">20-29</option>
+                      <option value="30-39">30-39</option>
+                      <option value="40-49">40-49</option>
+                      <option value="50-59">50-59</option>
+                      <option value="60-69">60-69</option>
+                      <option value="70-79">70-79</option>
+                      <option value="80-89">80-89</option>
+                      <option value="&gt;90">90+</option>
+                    </select>
+                  </p>
+    
+    <p><b>What is your gender?</b></p>
+                  <p>
+                    <select name="gender" id="gender" form="demographics">
+                      <option value="">Choose a gender</option>
+                      <option value="M">Female</option>
+                      <option value="F">Male</option>
+                      <option value="O">Other</option>
+                    </select>
+                  </p>
+    
+    <p><b>Is English your native (fisrt) language?</b></p>
+                  <p>
+                    <select name="native" id="native" form="demographics">
+                      <option value="">Choose an answer</option>
+                      <option value="yes">Yes</option>
+                      <option value="No">No</option>
+                    </select>
+                  </p>
+    
+    <p><b>Did you experience any technical problem with the experiment at any point?</b></p>
+                  <p>
+                    <select name="problem" id="problem" form="demographics">
+                      <option value="">Choose a response</option>
+                      <option value="No">No problem</option>
+                      <option value="Yes">Yes I had a problem</option>
+                
+                    </select>
+                  </p>
+    
+     <p><b>If you answered Yes to the previous question, can you expalain what kind of technical problem did you have?</b></p>
+          <p>
+           <textarea type="text" id="ifproblem" style="width:100%" name="problemExp"></textarea>
+          </p>
+    
+    <p><b>Do you have any comment about the experiment? (too long? too complicated?,...) </b></p>
+          <p>
+           <textarea type="text" id="comment" style="width:100%" name="comment"></textarea>
+          </p>
+    
+
+      <center><button type="button" id="nextButton_brief" onClick=" this.blur(); experiment.next()"> Submit the results!</button></center>
+</div>  
+    
+
+<!-- The finish slide. -->
+<div class="slide" id="finished">
+	You're finished - thanks for participating! Submitting to Mechanical Turk...
+</div>
+
+<!-- Include the <a href="experiment.html">JavaScript file for the experiment</a>. As written, that script immediately executes commands, so we include it here at the end of the HTML file to ensure that resources referenced by the script actually exist. For instance, one of the immediately executed commands is <code>showSlide("instructions")</code>. If we loaded experiment.js, say, in the <code>head</code> section, <code>showSlide("instructions")</code> would fail because the <code>instructions</code> slide doesn't exist yet. It is possible to load the script in <code>head</code> but you have to ensure that any immediately executed commands, if they rely on potentially uninitialized HTML elements, are _delayed_ until the page is ready, using either [window.onload][onload] or jQuery's more robust [$(document).ready()][domReady]  -->
+<!-- [onload]: https://developer.mozilla.org/en/DOM/window.onload -->
+<!-- [domReady]: http://api.jquery.com/ready/ -->
+<script src="experiment1.js"></script>
+
+</body>
+</html>
