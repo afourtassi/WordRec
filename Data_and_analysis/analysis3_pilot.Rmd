@@ -28,7 +28,7 @@ Data.
 #Filter subjects who had no technical problem
 #Select subjects who got more than 50% correct answers on the pre task trials
 
-d <- read_delim("data_exp3_pilot6.txt", delim = " ") %>%
+d <- read_delim("data_exp3.txt", delim = " ") %>%
   filter(type == "Task", problem=="No") %>%
   filter(score > 0.5)
 

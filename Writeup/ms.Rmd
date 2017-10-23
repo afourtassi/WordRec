@@ -1,0 +1,1300 @@
+---
+title             : "Word Identification Under Multimodal Uncertainty"
+shorttitle        : "Word Identification Under Multimodal Uncertainty"
+
+author: 
+  - name          : "Abdellah Fourtassi"
+    affiliation   : "1"
+    corresponding : yes    # Define only one corresponding author
+    address       : "Postal address"
+    email         : "afourtas@stanford.edu"
+  - name          : "Michael C. Frank"
+    affiliation   : "1"
+
+affiliation:
+  - id            : "1"
+    institution   : "Department of Psychoogy, Stanford University"
+
+author_note: |
+
+  Abdellah Fourtassi
+  
+  Deprtment of Psychology
+  
+  Stanford Univerisity
+  
+  50 Serra Mall
+  
+  Jordan Hall, Building 420
+  
+  Stanford, CA 94301
+
+abstract: |
+  Identifying the visual referent of a spoken word -- that a particular insect is referred to by the word ``bee'' -- requires both the ability to process and integrate multimodal input and the ability to reason under uncertainty. How do these tasks interact with one another? We introduce a task that allows us to examine how adults identify words under joint uncertainty in the auditory and visual modalities. We propose an ideal observer model of the task which provides an optimal account of how auditory and visual cues are combined. Model predictions are tested in three experiments where word recognition is made under two kinds of uncertainty: category ambiguity and/or distorting noise. In all cases, the optimal model explains much of the variance in human judgments. In particular, when the signal was not distorted with noise, participants weighted the auditory and visual cues optimally, that is, according to the relative reliability of each modality. But when one modality had noise added to it, human perceivers systematically preferred the unperturbed modality to a greater extent than the optimal model did. We discuss the broad implications of the results, especially in relation to early language acuquisition. 
+  
+keywords          : "Language; audio-visual processing; word learning; speech perception; computational modeling."
+
+wordcount         : "X"
+
+bibliography      : ["references.bib"]
+
+figsintext        : no
+figurelist        : no
+tablelist         : no
+footnotelist      : no
+lineno            : yes
+
+lang              : "english"
+class             : "man"
+output            : papaja::apa6_pdf
+---
+
+```{r load_packages, include = FALSE}
+library("papaja")
+library(readr)
+library(tidyr)
+library(ggplot2)
+library(cowplot)
+library(knitr)
+library(boot)
+library(dplyr)
+library(langcog)
+theme_set(theme_bw())
+```
+
+```{r}
+
+#Data from the 3 experiments 
+#############################
+exp1 <- read_delim("../Data_and_analysis/data_exp1_Anonym.txt", delim = " ") %>%
+  filter(type == "Task") %>%
+  mutate(experiment='Experiment1')
+
+exp2 <- read_delim("../Data_and_analysis/data_exp2_Anonym.txt", delim = " ") %>%
+  filter(type == "Task") %>%
+  mutate(experiment='Experiment2')
+
+exp3 <- read_delim("../Data_and_analysis/data_exp3_Anonym.txt", delim = " ") %>%
+  filter(type == "Task") %>%
+  mutate(experiment='Experiment3')
+```
+
+
+```{r}
+#First deal with all data
+```
+
+```{r}
+#First Exlusion criteria:
+#############################
+
+#All data
+N_all_1 <- exp1 %>%
+  distinct(ID) %>%
+  nrow()
+
+N_all_2 <- exp2 %>%
+  distinct(ID) %>%
+  nrow()
+
+N_all_3 <- exp3 %>%
+  distinct(ID) %>%
+  nrow()
+
+
+#Filter who took the experiment more than once 
+
+#Exp1
+ token_data_1 <- exp1 %>%
+   group_by(ID) %>%
+   dplyr::summarise(N_tokens=n())
+ 
+ N_twice_1 <- token_data_1 %>%
+   filter(N_tokens > 70) %>%
+   nrow()
+    
+ exp1_once <- exp1 %>%
+   left_join(token_data_1) %>%
+   filter(N_tokens == 70) #every subject is supposed to produce exactly 70 tokens
+
+ #Exp2
+token_data_2 <- exp2 %>%
+   group_by(ID) %>%
+   dplyr::summarise(N_tokens=n())
+ 
+ N_twice_2 <- token_data_2 %>%
+   filter(N_tokens > 70) %>%
+   nrow()
+    
+ exp2_once <- exp2 %>%
+   left_join(token_data_2) %>%
+   filter(N_tokens == 70)
+ 
+ #Exp3
+token_data_3 <- exp3 %>%
+   group_by(ID) %>%
+   dplyr::summarise(N_tokens=n())
+ 
+ N_twice_3 <- token_data_3 %>%
+   filter(N_tokens > 70) %>%
+   nrow()
+    
+ exp3_once <- exp3 %>%
+   left_join(token_data_3) %>%
+   filter(N_tokens == 70)
+
+#Participants who did not encounter a technical problem with the online experiment
+ 
+#Exp1
+exp1_noProb <- exp1_once %>%
+  filter(problem=="No") 
+
+N_noProb_1 <- exp1_noProb %>%
+  distinct(ID) %>%
+  nrow()
+
+#Exp2
+exp2_noProb <- exp2_once %>%
+  filter(problem=="No") 
+
+N_noProb_2 <- exp2_noProb %>%
+  distinct(ID) %>%
+  nrow()
+
+#Exp3
+exp3_noProb <- exp3_once %>%
+  filter(problem=="No") 
+
+N_noProb_3 <- exp3_noProb %>%
+  distinct(ID) %>%
+  nrow()
+
+#Participants who who did not encounter a problem AND were above 50% accuracy on obvious trials
+
+#Exp1
+exp1_good <- exp1_noProb %>%
+  filter(score > 0.5)
+
+N_good_1 <- exp1_good %>%
+  distinct(ID) %>%
+  nrow()
+
+#Exp2
+exp2_good <- exp2_noProb %>%
+  filter(score > 0.5)
+
+N_good_2 <- exp2_good %>%
+  distinct(ID) %>%
+  nrow()
+
+#Exp3
+exp3_good <- exp3_noProb %>%
+  filter(score > 0.5)
+
+N_good_3 <- exp3_good %>%
+  distinct(ID) %>%
+  nrow()
+
+```
+
+
+```{r}
+
+
+#Data subseting
+
+#Experiment 1
+##############
+
+sound_all_exp1 <- exp1_good %>%
+    filter(condition == "sound")
+
+concept_all_exp1 <- exp1_good %>%
+    filter(condition == "concept")
+
+joint_all_exp1 <- exp1_good %>%
+    filter(condition == "joint")
+
+#Summary
+sounds_exp1 <- exp1_good %>%
+  filter(condition == "sound") %>%
+  group_by(sound_dist) %>%
+  #multi_boot_standard(col = "answer")
+  summarise(mean = mean(answer)) %>%
+  mutate(Experiment="Experiment 1", 
+         Condition="Auditory") %>%
+  rename(distance = sound_dist)
+
+concepts_exp1 <- exp1_good %>%
+  filter(condition == "concept") %>%
+  group_by(concept_dist) %>%
+  #multi_boot_standard(col = "answer")
+  summarise(mean = mean(answer)) %>%
+  mutate(Experiment="Experiment 1", 
+         Condition="Visual") %>%
+  rename(distance = concept_dist)
+
+joint_exp1 <- exp1_good %>%
+  filter(condition == "joint") %>%
+  group_by(concept_dist, sound_dist) %>%
+  #multi_boot_standard(col = "answer")
+  summarise(mean = mean(answer)) %>%
+  mutate(Experiment="Experiment 1", 
+         Condition="Joint") 
+
+#Experiment2
+############
+
+sound_all_exp2 <- exp2_good %>%
+    filter(condition == "sound")
+
+concept_all_exp2 <- exp2_good %>%
+    filter(condition == "concept")
+
+joint_all_exp2 <- exp2_good %>%
+    filter(condition == "joint")
+
+#Summary
+sounds_exp2 <- exp2_good %>%
+  filter(condition == "sound") %>%
+  group_by(sound_dist) %>%
+  #multi_boot_standard(col = "answer")
+  summarise(mean = mean(answer)) %>%
+  mutate(Experiment="Experiment 2", 
+         Condition="Auditory") %>%
+  rename(distance = sound_dist)
+
+concepts_exp2 <- exp2_good %>%
+  filter(condition == "concept") %>%
+  group_by(concept_dist) %>%
+  #multi_boot_standard(col = "answer")
+  summarise(mean = mean(answer)) %>%
+  mutate(Experiment="Experiment 2", 
+         Condition="Visual") %>%
+  rename(distance = concept_dist)
+
+joint_exp2 <- exp2_good %>%
+  filter(condition == "joint") %>%
+  group_by(concept_dist, sound_dist) %>%
+  #multi_boot_standard(col = "answer")
+  summarise(mean = mean(answer)) %>%
+  mutate(Experiment="Experiment 2", 
+         Condition="Joint") 
+
+#Experiment3
+############
+
+sound_all_exp3 <- exp3_good %>%
+    filter(condition == "sound")
+
+concept_all_exp3 <- exp3_good %>%
+    filter(condition == "concept")
+
+joint_all_exp3 <- exp3_good %>%
+    filter(condition == "joint")
+
+#Summary
+sounds_exp3 <- exp3_good %>%
+  filter(condition == "sound") %>%
+  group_by(sound_dist) %>%
+  #multi_boot_standard(col = "answer")
+  summarise(mean = mean(answer)) %>%
+  mutate(Experiment="Experiment 3", 
+         Condition="Auditory") %>%
+  rename(distance = sound_dist)
+
+concepts_exp3 <- exp3_good %>%
+  filter(condition == "concept") %>%
+  group_by(concept_dist) %>%
+  #multi_boot_standard(col = "answer")
+  summarise(mean = mean(answer)) %>%
+  mutate(Experiment="Experiment 3", 
+         Condition="Visual") %>%
+  rename(distance = concept_dist)
+
+joint_exp3 <- exp3_good %>%
+  filter(condition == "joint") %>%
+  group_by(concept_dist, sound_dist) %>%
+  #multi_boot_standard(col = "answer")
+  summarise(mean = mean(answer)) %>%
+  mutate(Experiment="Experiment 3", 
+         Condition="Joint") 
+
+exp_uni_data <- bind_rows(sounds_exp1, concepts_exp1,
+                     sounds_exp2, concepts_exp2,
+                     sounds_exp3, concepts_exp3)
+
+
+```
+
+Language uses symbols expressed in one modality (e.g., the auditory modality, in the case of speech) to communicate about the world, which we perceive through many different sensory modalities. Consider hearing someone yell "bee!" at a picnic, as a honey bee buzzes around the food. Determining reference involves processing the auditory information and linking it with other perceptual signals (e.g., the visual image of the bee, the sound of its wings, the sensation of the bee flying by your arm).
+
+This multimodal integration task takes place in a noisy world. On the auditory side, individual acoustic word tokens are almost always ambiguous with respect to the particular sequence of phonemes they represent, which is due to the inherent variability of how a phonetic category is realized acoustically [@hillenbrand1995]. And some tokens may be distorted additionally by mispronunciation or ambient noise. Perhaps the speaker was yelling "pea" and not "bee". Similarly, a sensory impression may not be enough to make a definitive identification of a visual category.\footnote{In the general case, language can of course be visual as well as auditory, and object identification can be done through many modalities. For simplicity, we focus on audio-visual matching here.} Perhaps the insect was a beetle or a fly instead. 
+
+How does the brain deal with uncertainty to process and understand language? Previous research showed that the brain encodes speech cues probabilistically, in a way that mirrors the inherent noise/ambiguity in the input. From this probabilistic representation, the brain tends to make the statistically optimal judgement about the identity of the intended categories [e.g., @clayard08; @feldman2009]. Previous work in this line of research has largely focused on testing optimal inference using cues from the auditory modality. A few studies did explore some aspects of audio-visual processing in a probabilistic framework [@bejjanki2011; @kleinschmidt2015]. These studies focused on the case of audio-visual speech perception, that is, recognizing speech categories using cues from the auditory signal accompagnied with lip movements. To our knowledge, however, no study explored whether word recogniton is statistially optimal in a *referential* context, that is, when the brain has to combine cues from the sound and the meaning/referent. Imagine, for example, that someone is uncertain whether they heard "pea" or "bee", does it make them rely more on the referent (e.g., the object being pointed at)? Vice versa, if they are not sure if they saw a bee or a fly, does that make them rely more on the sound? More importantly, when input in both modalities is uncertain to varying degrees, do they weight each modality according to its relative reliability, or do they over-rely on a particular modality?
+
+Outside the realm of language per se, research on multisensory integration suggests that the brain integrates information from different modalities in a statistically optimal way, that is, the integration results in a higher overall precision, and modalities are weighed according to their relative reliability [@ernst02]. However, it is not a priori obvious whether this finding can be extended to word-referent recognition under multimodal uncertainty.  Indeed, there seems to be at least two fundamental differences between these two cases, and both can influence the cue combination strategy.
+
+First, in the case of optimal multisensory integration, modalities are understood to differ only in terms of their reliability. In a referential conext, however, modalities also differ in terms of their roles in the referential process: the auditory input represents the symbol (i.e., the word) whereas the visual input represents the referent. It has been suggested that because of the referential property of speech, it is a privileged signal for humans from infancy [see @vouloumanos2014 for a review]. Thus, it is possible that the brain does not treat the auditory and visual modalities as equivalent sources of information. Instead, there could be a bias for the auditory modality beyond what is expected from informational reliability alone. 
+
+Second, research on optimal multisensory integration typically deals with multisensory associations that are supposed to be *redundant*. An example of such integration is when we determine the size of an object using the visual and haptic modalities [@ernst02], or when we determe the spacial location of a stimulus using the visual and the auditory modalities [@alais04]. In the case of language, however, the multimodal input is rather *arbitrary* [@saussure1916].  For instance, there is no logical connection between the sound "bee" and the corresponding insect. Moreover, variation in the way the sound "bee" is pronounced does not correlate perceptually with variation in the shape (or any other visual property) in the category of bees. It turns out the nature of the multi-modal associations (redundant vs. arbitrary) influences the quality of multi-modal processing in both children and adults: the processing and integration is easier in the case of redundant input, than it in the case of arbitrary input [see @robinson2010 for a review]. Thus, there is a priori no obvious reason multimodal cue combination in the case of arbitrary assoiations (such as the case of word-referent) should be optimal in the same way redundant associations are. For instance, the former is more likely to show patterns of sub-optimality. 
+
+<!--
+
+TRY TO CONTRAST TWO THINGS: WORK ON PERCEPTUAL INTEGRATION WHEN THERE IS CORRELATION AND WORK OF AUDIO-VISUAL ENCODING OF ARBITRARY ASSOCIATIONS, SHOW THAT THE FIRST IS NOT ARBIRARY, AND MOSTY CONTINUOUS (ANS PRODUCE OPTIMALITY), THE SECOND DOES NOT INVOVLE CATEGORIES OR A SEMANTIC CONTEX, WHERE A WORD REFER TO AN OBJECT, INSTEAD OF BEING JUST ARBITRARY (AND PRODUCE HINDRANCE AND SUB-OPTIMALITY). THUS OUR WORK TRIES TO DEAL WITH CASE
+
+A few studies have explored some aspects of audio-visual processing in a probabilistic framework  [e.g., @bejjanki2011; @kleinschmidt2015]. In these studies, the researchers focused on the specific case of audio-visual speech  where information is *redundant* across modalities. In the present work, we study the case of word reference where the audio-visual associations are usually *arbitrary* (Cite Saussure). For instance, whereas in the case of audio-visual speech, the sound "bee" and the corresponding lip movements are supposed to merge into a unified percept, there is nothing in the sound "bee" or in the way it can be pronounced, that correlates perceptually with the shape (or some other visual property) of the insect.
+
+More generally, we know that the nature of the multi-modal associations (redundant vs. arbitrary) influences the quality of the processing in both children and adults [see @robinson2010 for a review]. In the case of redundant multimodal information (e.g. determining the size of an object through the visual and haptic modality), the sensory integration is often statistically optimal (Ernst and Banks, 2002). Optimality in this context means two things: first, the precision of the bimodal estimate increases compared to the unimodal estimates, and second, the cues from different modalities are combined according to their relative reliability. In the case of arbitrary associations, empirical studies suggest, rather, sub-optimality. In fact, processing of the bimodal input does not increase the precision, it tends to hinder performance instead (Sloutsky, Palmer, Stager, ... I should dig into the literature on the arbitrary associations). Moreover, modalities are not optimally weighted according to their reliability, instead, one modality dominates the other depending on the task, e.g., Sloutsky et al. reported auditory dominance (for kids) and then prefernce for adults (..), and Colovita et al. reported visual dominance for adults. 
+
+-->
+
+In this paper, we studied the mechanism of processing/combination of audiovisual cues in a referential context, under multiple sources of uncertainty. More precisely, we tested if the cue combination was statistically optimal. Besides, we quantified any sub-optimality that might have been induced, among other things, by the suggested privileged status of speech or by the arbitrariness of the referential associations. To test optimality, we characterized uncertainty in each modality with a probability distribution, and we predicted responses by combining these probabilities in an optimal way. To study possible patterns of sub-optimality, we compared the optimal model to a descriptive model where the parameters of the bimodal probability distributions were fitted to human judgements. We tested the model's predictions in three behavioral experiments where we varied the source of uncertainty. In Experiment 1, audio-visual tokens were ambiguous with respect to their category membership. In Experiment 2, we intervened by adding background noise to the auditory modality, and in Experiment 3, we intervened by adding background noise to the visual modality. In all Experiments, participants were quantitatively near-optimal, though precision dropped slightly in the bimodal condition. Moreover, in Experiment 1 where neither of the modalities was perturbed with background noise, participants weighed auditory and visual cues according to the relative reliability predicted by the optimal model. In other words, we found no evidence for a modality bias towards either the auditory or the visual modality. However, In Experiment 2 and 3, participants over-relied on one modality when the other modality was perturbed with additional noise.  Finally, we discuss the broad implications of these results, especially in relation to some developmental findings in early word learning [e.g., @stager1997].
+
+# Model
+
+In this section we describe the multimodal integration model. First, we briefly introduce the experimental paradigm, and second we explain how this paradigm can be modeled in a probabilistic framework.
+
+## The Audio-Visual Word Recognition Task
+
+We introduce a new task that tests word recognition in a referential context.  We use two visual categories (cat and dog) and two auditory categories (/b/ and /d/ embedded in the minimal pair /aba/-/ada/). For each participant, an arbitrary pairing is set between the auditory and the visual categories, leading to two audio-visual word categories (e.g., dog-/aba/, cat-/ada/).
+
+In each trial, participants are presented with an audio-visual target (the prototype of the target category), immediately followed by an audio-visual test stimulus (Figure\ \@ref(fig:task)). The test stimulus may differ from the target in both the auditory and the visual components.  After these two presentations, participants press "same" or "different".
+
+```{r task, fig.cap = "Overview of the task. In the audio-visual condition, participants are first presented with an audio-visual target (the prototype of the target category), immediately followed by an audio-visual test. The test may differ from the target in both the auditory and the visual components. After these two presentations, participants press same' (i.e., the same category as the target) or `different' (not the same category). The auditory-only and visual-only conditions are similar, expect only the sounds are heard, or only the pictures are shown, respectively.", fig.align = "center", out.width = "400px"}
+knitr::include_graphics("pictures/task.png", dpi = 108)
+```
+
+This itask is similar to the task introduced by @sloutsky2003. However, in that study, as well as subsequent ones, participants were asked whether or not the two audio-visual presentations were *identical*. Such task would allow us to probe audio-visual encoding, but not necessarily speech perception. The latter requires---in addition to the perceptual encoding---a categorical judgement, i.e, determining wheather two similar tokens are members of the same phonological/semantic category. Thus, our task is category-based: participants are asked to press "same" if they think the second item (the test) belonged to the same category as the first (target) (e.g.,  dog-/aba/), even if there is a slight difference in the word, in the referent, or in both. They are instructed to press "different" only if they think that the second stimulus was an instance of the other word category (cat-/ada/).
+
+We assume, for the sake of simplicity, that category tokens vary along a single dimension. Phonetic tokens are sampled from an acoustic continuum linking /aba/ to /aba/, and obtained by continuously varying the value of the second formant [@vroomen2004]. Visual tokens are sampled from a morph continuum linking the picture of a dog and the picture of a cat [@freedman2001]. 
+
+The task also includes trials where pictures are hidden (audio-only) or where sounds are muted (visual-only). These unimodal trials provide us with participants' categorization functions for the auditory and visual categories and are used as inputs to the optimal model, described below.
+
+## Optimal Model
+
+The basis of our optimal model is that individual probabilistic representations from each modality should be combined optimally. First we describe how probabilistic representations in each modality are derived/fitted, and second we explain how they are combined to yield optimal predictions.
+
+### Unimodal representations
+
+In each modality, we have two categories: /ada/ ($A=1$) and /aba/ ($A=2$) in the auditory dimension, and *cat* ($V=1$) and *dog* ($V=2$) in the visual dimension.
+
+We assume the probability of membership in each category is normally distributed:
+
+$$ p(a | A) \sim  N(\mu_A, \sigma^2_A) $$
+$$ p(v | V) \sim  N(\mu_V, \sigma^2_V) $$
+The parameters of these distributions are fitted to the participants' judgement in the unimodal case, i.e., when they only hear the sounds, and when they only see the objects. For an ideal recognizer, the probability of choosing category 2 (that is, to answer "different") when presented with, say, an audio instance $a$, is the posterior probability of this category $p(A_2|a)$. If we assume that both categories have equal variances, the posterior probability reduces to:
+
+$$p(A_2 | a)=\frac{1}{1+(1+\epsilon_A)\exp(\beta_{a0}+\beta_aa)}$$
+
+with $\beta_a=\frac{\mu_{A_1}-\mu_{A_2}}{\sigma^2_{A}}$, $\beta_{a0}=\frac{\mu^2_{A_2}-\mu^2_{A_1}}{2\sigma^2_{A}}$, and $1+\epsilon_A=\frac{p(A_1)}{p(A_2)}$ is the proportion of the prior probabilities. If the identity of the auditory categories is randomized, and if $A_1$ is the target, then $\epsilon$ measures a response bias to "same" if $\epsilon > 0$, and a response bias to "different" if $\epsilon < 0$.
+
+We modeled the visual representation in exactly the same way.
+
+### Optimal model
+
+In the bimodal condition, participants see audio-visual tokens. They have to combine information from both modalities and make a categorical decision. How can this task be characterized in a formal way, and what would be the optimal behavior? Work on multisensory integration generally considers the outcome of multiplying the distributions derived from each modality [e.g., @ernst02]. However, this way of combining multi-modal cues is more adequate to examine continuous perceptual dimensions (e.g., size). It is less applicable to categorical dimensions (e.g., phonemes) [see @bejjanki2011; @Bankieris17 for futher detail]
+
+<!-- more adequate to the case of redundant information, where, for instance, cues are in the same units, the same coordinates and about the same aspect of the environmental property. It is less adequate to describe the case of arbitrary associations where cues are in different units, coordinate systems, or about complementary aspects of the same environmental property [see @ernst04 for further detail]. -->
+
+We followed a formal approach similar in spirit to the one adopted by @bejjanki2011. In this approach, the bimodal optimal distribution is defined, not as the product of the unimodal distribution $p(A)$ and $p(V)$, but as their joint distribution in a higher dimensional space, which we call the audio-visual space.  Thus, a word token is defined as a vector in this space, $w=(a,v)$, and a word category $W$ can be characterized with a bivariate normal distribution:
+$$ p(w | W) \sim  N(M_W, \Sigma_W) $$
+```{r model, fig.cap = "Illustration of the model using simulated data. A word category is defined as the joint bivariate distribution of an auditory category (horizontal, bottom panel) and a visual semantic category (vertical, left panel). Upon the presentation of a word token $w$, participants guess whether it is sampled from the word type $W_1$ or from the word type $W_2$. Decision threshold is where the guessing probability is 0.5.", fig.align = "center", out.width = "400px"}
+knitr::include_graphics("pictures/model.png", dpi = 108)
+```
+
+We have two word categories: dog-/aba/ ($W_1$) and cat-/ada/ ($W_2$). Participants can be understood as choosing one of these two word categories (Figure\ \@ref(fig:model)). For an ideal observer, the probability of choosing category 2 when presented with an audio-visual instance $w=(a,v)$ is the posterior probability of this category:
+
+$$
+p(W_2 | w)=\frac{p(w|W_2)p(W_2)}{p(w|W_2)p(W_2)+p(w|W_1)p(W_1)}
+$$
+We make the assumption that, given a particular word category, the auditory and visual tokens are independent:
+
+$$p(w | W) = p(a,v| W) = p(a| W)p(v| W)$$
+This assumptions simply says that, given a word-object mapping, e.g., W=("bee"-BEE), variation in the way "bee" is pronounced does not correlate with changes in any visual property of the object BEE\footnote{Note that this assumptions is more adequate to the case of arbitrary associations such as ours, and less so in the case of redundant association such as audio-visual speech. In the latter, variation in the pronounciation is expected to correlate, at least to some extent, with lip movements.}.
+
+Under this assumption, the posterior probability reduces to:
+$$ p(W_2 | w)=\frac{1}{1+(1+\epsilon)\exp(\beta_0+\beta_aa+\beta_vv)}$$
+
+with $\beta_a=\frac{\mu_{A1}-\mu_{A2}}{\sigma^2_{A}}$,
+$\beta_v=\frac{\mu_{V1}-\mu_{V2}}{\sigma^2_{V}}$, $\beta_0=\frac{\mu^2_{A2}-\mu^2_{A1}}{2\sigma^2_{A}}+\frac{\mu^2_{V2}-\mu^2_{V1}}{2\sigma^2_{V}}$ 
+and $1+\epsilon=\frac{p(W_1)}{p(W_2)}$ is the proportion of the prior probabilities. If the identity of word categories is randomized, and if $W_1$ is the target, then $\epsilon$ measures a response bias to "same" if $\epsilon > 0$, and a response bias to "different" if $\epsilon < 0$. We expect a general bias towards answering "different" because of the categorical nature of our same-different task: when two items are ambiguous but perceptually different, this could cause a slight preference for "different" over "same".
+
+We fix the values of the means to be the endpoints of the corresponding continuum. For example, if both the auditory and visual continua are made of 5 steps going from 0 to 4, then $\mu_{A1}=0$ and $\mu_{A2}=4$ (and similarly $\mu_{V1}=0$, and $\mu_{V2}=4$). When we fix th values of the means, observations from each modality ($a$ and $v$) become weighted according to their reliability, i.e., in the posterior we have $\beta_a \propto \frac{1}{\sigma^2_{A}}$ and $\beta_v \propto \frac{1}{\sigma^2_{V}}$ for the auditory and visual token, respectively.
+
+
+## Auditory and Visual baselines
+
+The posterior provides the optimal model's predictions for how probabilities that characterize uncertainty in each modality can be combined to make categorical decision about the bimodal input. The predictions of the optimal model will be compared to human responses in the bimodal case. Besides the optimal model, we also test the predictions of two baselines models: the **visual model**, which assumes that participants rely only on visual information, and the **auditory model**, which assumes that participants rely only on auditory information. If participants rely on both the auditory and the visual modalities, the optimal model would explain more variance in human responses than  the visual model alone or the auditory model alone.
+
+## Descriptive model
+
+The visual, auditory, and optimal models are *normative* models. Their predictions are made about human data in the bimodal condition, although their crucial parameters (i.e., variances associated with the visual and auditory modalities) are derived from data in the unimodal conditions.
+In addition to these normative models, we consider a *descriptive* model. The parameters of this model are fitted to human data in the bimodal condition. If the referential task induces sub-optimality (due, for instance, to the arbitrary nature of the sound-object association), then we predict the descriptive model to explain more variance than the optimal model does. 
+
+A systematic comparison of the optimal and the descriptive models would allow us, not only to quantify how much people deviate from optimality, but also to understand qualitatively how they deviate from this optimality. Let $\sigma^2_{A}$ and $\sigma^2_{V}$ be the values of the variances used in the optimal model (derived from the unimodal conditions), and $\sigma^2_{Ab}$ and $\sigma^2_{Vb}$ be the values observed through the descriptive model in the bimodal condition. There are three possible cases of sub-optimality:
+
+1) Precision decreases equally for both modalities. That is, $\frac{1}{\sigma^2_{Ab}} < \frac{1}{\sigma^2_{A}}$ and $\frac{1}{\sigma^2_{Vb}} < \frac{1}{\sigma^2_{V}}$, but  $\frac{\sigma^2_{Ab}}{\sigma^2_{Vb}} \approx \frac{\sigma^2_{A}}{\sigma^2_{V}}$. In this case, sub-optimality would be due to increased randomness in human responses in the bimodal condition. However, this randomness would not affect the relative weighting of both modalities, i.e., participants would still weigh modalities according to the relative reliability predicted by the optimal model.
+
+2) The precision of the auditory modality decreases at a higher rate.  That is, $\frac{1}{\sigma^2_{Ab}} \ll \frac{1}{\sigma^2_{A}}$ and $\frac{1}{\sigma^2_{Vb}} \leq \frac{1}{\sigma^2_{V}}$, leading to $\frac{\sigma^2_{Ab}}{\sigma^2_{Vb}} > \frac{\sigma^2_{A}}{\sigma^2_{V}}$. In this case, sub-optimally would consist not only in participants being more random in the bimodal condition, but also in them thaving a systematic preference for the visual modality, even after accounting for informational reliability. 
+
+3) The precision of the visual modality decreases at a higher rate. That is, $\frac{1}{\sigma^2_{Vb}} \ll \frac{1}{\sigma^2_{V}}$, and  $\frac{1}{\sigma^2_{Ab}} \leq \frac{1}{\sigma^2_{A}}$, leading to $\frac{\sigma^2_{Ab}}{\sigma^2_{Vb}} > \frac{\sigma^2_{A}}{\sigma^2_{V}}$. This case is the reverse of case 2, i.e., in addition to increased randomness in the bimodal condition, there is a systematic preference for the auditory modality, even after accounting for informational reliability. 
+
+A more principled way to understand these three cases of sub-optimality, especially with regard to modality preference, is to study deviations from the optimal decision threshold. The decision threshold is defined as the set of values in the audio-visual space along which the posterior is equal to 0.5. The decision threshold takes the following form:
+
+$$v=-\frac{\sigma^2_V}{\sigma^2_A}a+v_0$$
+
+If the slope derived from the descriptive model is greater than the slope of the optimal model, the corresponding shift in the decision threshold indicate that participants have a preference for the auditory modality in the bimodal case. similarly, a smaller slope would lead to a preference for the visual modality. The limit cases are when there is exclusive reliance on the auditory cue (a vertical line), and where there is exclusive reliance on the visual (a horizontal line). Figure\ \@ref(fig:subOptim) illustrate the three cases of sub-optimality discussed above.
+
+```{r subOptim, fig.cap = "Illustration using simulated data showing the prediction of the optimal model (top), and three possible ways human responses, as characterized by the descriptive model, can deviate from the optimal predictions (bottom). There are three possible cases of sub-optimlaity: 1) the precision drops equally for both modalities, and the cue weighing is still optimal (bottom, left), 2) the precision of the visual modality drops at a higher rate, leading to bias towards the auditory modality (bottom, middle), and 3) the precision of the auditory modality drops at a higher rate, leading to bias towards the visual modality (bottom, right)", fig.align = "center", out.width = "400px"}
+knitr::include_graphics("pictures/sub-optimal", dpi = 108)
+```
+
+In the following, we test these predictions in three Experiments. In Experiment 1, we study the case where bimodal uncertainty is due to ambiguity in terms of category membership, without any additional background noise. In Experiment 2 and 3 we add background noise on top of ambiguity in category membership. In Experiment 2 we add background noise to the auditory modality, and in Experiment 3 we add background noise to the visual modality.
+
+
+# Experiment 1
+
+In this Experiment, we start with testing the predictions in the case where uncertainty is due to ambiguity in terms of category membership, without any additional noise in the background.  
+
+## Methods
+
+### Participants:
+
+We recruited a planned sample of `r N_all_1` participants from Amazon Mechanical Turk. Only participants with US IP addresses and a task approval rate above 85\% were allowed to participate. They were paid at an hourly rate of \$6/hour. participants were excluded if they took the experiment more than once (N=`r  N_twice_1`), then if they reported having experienced a technical problem of any sort during the online experiment (N=`r N_all_1 - N_noProb_1`), and finally if they had less than 50\% accurate responses on the unambiguous training trials (N=`r N_noProb_1 - N_good_1`). The final sample consisted of (N = `r N_good_1`) participants\footnote{The sample size and exclusion criteria were specified in the pre-registration at https://osf.io/h7mzp/}.
+
+### Stimuli:
+For auditory stimuli, we used the continuum introduced in @vroomen2004, a 9-point /aba/--/ada/ speech continuum created by varying the frequency of the second (F2) formant in equal steps. We selected 5 equally spaced points from the original continuum by keeping the endpoints (prototypes) 1 and 9, as well as points 3, 5, and 7 along the continuum. For visual stimuli, we used a morph continuum introduced in @freedman2001. From the original 14 points, we selected 5 points as follows: we kept the item that seemed most ambiguous (point 8), the 2 preceding points (i.e., 7 and 6) and the 2 following points (i.e., 9 and 10). The 6 and 10 points along the morph were quite distinguishable, and we took them to be our prototypes. 
+
+### Design and Procedure
+We told participants that an alien was naming two objects: a dog, called "aba"" in the alien language, and a cat, called "ada". In each trial, we presented the first object (the target) on the left side of the screen simultaneously with the corresponding sound. The target was always the same (e.g., dog-/aba/). The second sound-object pair (the test) followed on the other side of the screen after 500ms and varied in its category membership. For both the target and the test, visual stimuli were present for the duration of the sound clip ($\sim$ 800ms). We instructed participants to press "S" for same if they thought the alien was naming another dog-/aba/, and "D" for different if they thought the alien was naming a cat-/ada/. For each participant, we randomized the sound-object mapping as well as the identity of the target.
+
+The first part of the experiment trained participants using only the prototype pictures and the prototype sounds (12 trials, 4 each from the bimodal, audio-only, and visual-only conditions). After completing training, we instructed participants on the structure of the task and encouraged them to base their answers on both the sounds and the pictures (in the bimodal condition). There were a total of 25 possible combinations in the bimodal condition, and 5 in each of the unimodal conditions. Each participant saw each possible trial twice, for a total of 70 trials/participant. Trials were blocked by condition and blocks were presented in random order.
+
+## Results and analysis
+
+```{r echo=FALSE}
+
+#Bootstrap sample parameters
+
+lmfit <- function(data, indices) {
+  
+  myd = data[indices, ]
+  
+  s_data <- myd %>%
+    filter(condition == "sound")
+
+  v_data <- myd %>%
+    filter(condition == "concept") 
+
+  j_data <- myd %>%
+    filter(condition == "joint")
+    
+  s_nl <- nls(answer ~ 1/(1+(1-e)*exp((-4/vrA)*sound_dist+(8/vrA))), data=s_data, start = list(e=0, vrA=2), nls.control(warnOnly = TRUE))
+
+ c_nl <- nls(answer ~ 1/(1+(1-e)*exp((-4/vrV)*concept_dist+(8/vrV))), data=v_data, start = list(e=0, vrV=2), nls.control(warnOnly = TRUE))
+
+ j_nl <- nls(answer ~ 1/(1+(1-e)*exp((-4/vrA_j)*sound_dist+(-4/vrV_j)*concept_dist+(8/vrA_j)+(8/vrV_j))), data=j_data, start = list(e=0, vrA_j=2, vrV_j=2), nls.control(warnOnly = TRUE))
+
+  
+  s_va <- coef(s_nl)["vrA"]
+  s_e <- coef(s_nl)["e"]
+  
+  v_va <- coef(c_nl)["vrV"]
+  v_e <- coef(c_nl)["e"]
+  
+  decision_ideal=v_va/s_va
+
+  j_va_s=coef(j_nl)["vrA_j"]
+  j_va_v=coef(j_nl)["vrV_j"]
+  j_e=coef(j_nl)["e"]
+  
+  decision_fit=j_va_v/j_va_s
+  
+  preference = decision_fit/decision_ideal
+  
+  MyBoot=c(s_va, s_e, v_va, v_e, j_va_s, j_va_v, j_e, decision_ideal, decision_fit, preference)
+  
+  
+  return(MyBoot) 
+
+  }
+
+
+results1 <- boot(data=exp1_good, statistic = lmfit, R = 10000)
+
+#Auditory variance:
+audVar=boot.ci(results1, index = 1, type = c("bca"), conf = 0.95)
+audVar_val=audVar$t0 
+audVar_ci1=audVar$bca[4]
+audVar_ci2=audVar$bca[5]
+
+#Auditory bias:
+audBias=boot.ci(results1, index = 2, type = c("bca"), conf = 0.95)
+audBias_val=audBias$t0 
+audBias_ci1=audBias$bca[4]
+audBias_ci2=audBias$bca[5]
+
+#Visual variance:
+visVar=boot.ci(results1, index = 3, type = c("bca"), conf = 0.95)
+visVar_val=visVar$t0 
+visVar_ci1=visVar$bca[4]
+visVar_ci2=visVar$bca[5]
+
+#Visual bias:
+visBias=boot.ci(results1, index = 4, type = c("bca"), conf = 0.95)
+visBias_val=visBias$t0 
+visBias_ci1=visBias$bca[4]
+visBias_ci2=visBias$bca[5]
+
+#Bimodal Auditory variance:
+audVarBi=boot.ci(results1, index = 5, type = c("bca"), conf = 0.95)
+audVarBi_val=audVarBi$t0 
+audVarBi_ci1=audVarBi$bca[4]
+audVarBi_ci2=audVarBi$bca[5]
+
+#Bimodal Visual variance:
+visVarBi=boot.ci(results1, index = 6, type = c("bca"), conf = 0.95)
+visVarBi_val=visVarBi$t0 
+visVarBi_ci1=visVarBi$bca[4]
+visVarBi_ci2=visVarBi$bca[5]
+
+#Bimodal bias:
+BiasBi=boot.ci(results1, index = 7, type = c("bca"), conf = 0.95)
+BiasBi_val=BiasBi$t0 
+BiasBi_ci1=BiasBi$bca[4]
+BiasBi_ci2=BiasBi$bca[5]
+
+#Ideal modality wieghing
+prefIdeal=boot.ci(results1, index = 8, type = c("bca"), conf = 0.95)
+prefIdeal_val=prefIdeal$t0 
+prefIdeal_ci1=prefIdeal$bca[4]
+prefIdeal_ci2=prefIdeal$bca[5]
+
+#fit modality wieghing
+prefFit=boot.ci(results1, index = 9, type = c("bca"), conf = 0.95)
+prefFit_val=prefFit$t0 
+prefFit_ci1=prefFit$bca[4]
+prefFit_ci2=prefFit$bca[5]
+
+#Modality bias 
+bias=boot.ci(results1, index = 10, type = c("bca"), conf = 0.95)
+bias_val_1=bias$t0 
+bias_ci1_1=bias$bca[4]
+bias_ci2_1=bias$bca[5]
+
+```
+
+### Unimodal conditions
+
+```{r}
+
+#Fit the non-linear function
+
+##Experiment 1
+#############
+sound_nl1 <- nls(answer ~ 1/(1+(1-e)*exp((-4/vrA)*sound_dist+(8/vrA))), data=sound_all_exp1, start = list(e=0, vrA=2))
+
+concept_nl1 <- nls(answer ~ 1/(1+(1-e)*exp((-4/vrV)*concept_dist+(8/vrV))), data=concept_all_exp1, start = list(e=0, vrV=2))
+
+joint_nl1 <- nls(answer ~ 1/(1+(1-e)*exp((-4/vrA_j)*sound_dist+(-4/vrV_j)*concept_dist+(8/vrA_j)+(8/vrV_j))), data=joint_all_exp1, start = list(e=0, vrA_j=2, vrV_j=2))
+
+##extract coefficient
+eA_nl1 <- coef(sound_nl1)["e"]
+vrA_nl1 <- coef(sound_nl1)["vrA"]
+
+eV_nl1 <- coef(concept_nl1)["e"]
+vrV_nl1 <- coef(concept_nl1)["vrV"]
+
+eJ_nl1 <- coef(joint_nl1)["e"]
+vrJ_A_nl1 <- coef(joint_nl1)["vrA_j"]
+vrJ_V_nl1 <- coef(joint_nl1)["vrV_j"]
+#######
+
+x <- seq(0, 4, 0.01)
+
+y_sound_nl1 <- predict(sound_nl1, list(sound_dist = x), type="response")
+y_concept_nl1 <- predict(concept_nl1, list(concept_dist = x), type="response")
+
+uniS_nl1 <- data.frame(distance=x, prediction=y_sound_nl1) %>%
+  mutate(Condition = 'Auditory', 
+         Experiment ='Experiment 1')
+
+uniV_nl1 <- data.frame(distance=x, prediction=y_concept_nl1) %>%
+  mutate(Condition = 'Visual',
+         Experiment ='Experiment 1')
+
+
+##Experiment 2
+###############
+
+sound_nl2 <- nls(answer ~ 1/(1+(1-e)*exp((-4/vrA)*sound_dist+(8/vrA))), data=sound_all_exp2, start = list(e=0, vrA=2))
+
+concept_nl2 <- nls(answer ~ 1/(1+(1-e)*exp((-4/vrV)*concept_dist+(8/vrV))), data=concept_all_exp2, start = list(e=0, vrV=2))
+
+joint_nl2 <- nls(answer ~ 1/(1+(1-e)*exp((-4/vrA_j)*sound_dist+(-4/vrV_j)*concept_dist+(8/vrA_j)+(8/vrV_j))), data=joint_all_exp2, start = list(e=0, vrA_j=2, vrV_j=2))
+
+##extract coefficient
+eA_nl2 <- coef(sound_nl2)["e"]
+vrA_nl2 <- coef(sound_nl2)["vrA"]
+
+eV_nl2 <- coef(concept_nl2)["e"]
+vrV_nl2 <- coef(concept_nl2)["vrV"]
+
+eJ_nl2 <- coef(joint_nl2)["e"]
+vrJ_A_nl2 <- coef(joint_nl2)["vrA_j"]
+vrJ_V_nl2 <- coef(joint_nl2)["vrV_j"]
+#######
+
+x <- seq(0, 4, 0.01)
+
+y_sound_nl2 <- predict(sound_nl2, list(sound_dist = x), type="response")
+y_concept_nl2 <- predict(concept_nl2, list(concept_dist = x), type="response")
+
+uniS_nl2 <- data.frame(distance=x, prediction=y_sound_nl2) %>%
+  mutate(Condition = 'Auditory', 
+         Experiment ='Experiment 2')
+
+uniV_nl2 <- data.frame(distance=x, prediction=y_concept_nl2) %>%
+  mutate(Condition = 'Visual', 
+         Experiment ='Experiment 2')
+
+
+##Experiment 3
+###############
+
+sound_nl3 <- nls(answer ~ 1/(1+(1-e)*exp((-4/vrA)*sound_dist+(8/vrA))), data=sound_all_exp3, start = list(e=0, vrA=2))
+
+concept_nl3 <- nls(answer ~ 1/(1+(1-e)*exp((-4/vrV)*concept_dist+(8/vrV))), data=concept_all_exp3, start = list(e=0, vrV=2))
+
+joint_nl3 <- nls(answer ~ 1/(1+(1-e)*exp((-4/vrA_j)*sound_dist+(-4/vrV_j)*concept_dist+(8/vrA_j)+(8/vrV_j))), data=joint_all_exp3, start = list(e=0, vrA_j=2, vrV_j=2))
+
+##extract coefficient
+eA_nl3 <- coef(sound_nl3)["e"]
+vrA_nl3 <- coef(sound_nl3)["vrA"]
+
+eV_nl3 <- coef(concept_nl3)["e"]
+vrV_nl3 <- coef(concept_nl3)["vrV"]
+
+eJ_nl3 <- coef(joint_nl3)["e"]
+vrJ_A_nl3 <- coef(joint_nl3)["vrA_j"]
+vrJ_V_nl3 <- coef(joint_nl3)["vrV_j"]
+#######
+
+x <- seq(0, 4, 0.01)
+
+y_sound_nl3 <- predict(sound_nl3, list(sound_dist = x), type="response")
+y_concept_nl3 <- predict(concept_nl3, list(concept_dist = x), type="response")
+
+uniS_nl3 <- data.frame(distance=x, prediction=y_sound_nl3) %>%
+  mutate(Condition = 'Auditory', 
+         Experiment ='Experiment 3')
+
+uniV_nl3 <- data.frame(distance=x, prediction=y_concept_nl3) %>%
+  mutate(Condition = 'Visual', 
+         Experiment ='Experiment 3')
+
+all_uni_model <- bind_rows(uniS_nl1, uniV_nl1,
+                           uniS_nl2, uniV_nl2,
+                           uniS_nl3, uniV_nl3)
+
+
+
+all_plot <- ggplot(exp_uni_data, 
+       aes(x = distance, y = mean)) + 
+  geom_point()+
+  #geom_pointrange(aes(ymin = summary_ci_lower, ymax = summary_ci_upper), 
+  #                position = position_dodge(width = .1)) + 
+  #geom_line(data=uniV,aes(x=xV, y=yV))+
+  geom_line(data=all_uni_model, aes(x=distance, y=prediction), col='black')+
+  xlab("Distance") +ylab("Prob. different")+
+  scale_y_continuous(limits = c(0, 1))+#theme(aspect.ratio = 0.7)+
+  theme(aspect.ratio = 0.7) + facet_grid(Experiment ~ Condition)
+  #stat_function(fun = Logistic_v, colour="red"))
+
+
+```
+
+```{r unimodal, fig.cap = "Dots represent the proportion of `different' to `same' responses in the auditory-only condition (left), and visual-only condition (right), across the three Experiments. Error bars are 0.95 confidence intervals. Solid lines represent logistic fits.", fig.align = "center", out.width = "400px"}
+
+all_plot
+
+```
+
+We first analysed the unimodal cases. These are the cases where the pictures were hidden, or where the sounds were muted. Average categorization judgments and fits are shown in Figure\ \@ref(fig:unimodal). The categorization function of the auditory condition was slightly steeper than that of the visual condition, meaning that participants perceived the sound tokens slightly more categorically and whih higher certainty than they did with the visual tokens. 
+
+Since we fixed the values of the means to be the endpoints of the corresponding continuum: $\mu_{A1}=0$ and $\mu_{A2}=4$ (and similarly $\mu_{V1}=0$, and $\mu_{V2}=4$), this leaves us with two free parameters: the bias and the variance. To determine the values of these parameters, we fit a model for each modality, collapsed across all participants. For the auditory modality, we obtained\footnote{all CIs in the paper are 95% confidence intervals} $\epsilon_A=$ `r audBias_val` CI [`r audBias_ci2`, `r audBias_ci1`] and $\sigma^2_A=$ `r audVar_val` CI [`r audVar_ci1`, `r audVar_ci2`]. For the visual modality, we obtained $\epsilon_V=$ `r visBias_val` CI [`r visBias_ci2`, `r visBias_ci1`] and $\sigma^2_V=$ `r visVar_val` CI [`r visVar_ci1`, `r visVar_ci2`]`.
+
+### Bimodal condition
+
+```{r  echo=FALSE}
+
+#All models
+
+##Experiment 1
+##############
+
+#The fit
+model_fit1 <- function (x,y) {
+   1/(1 + (1-eJ_nl1)*exp((-4/vrJ_A_nl1)*x+(-4/vrJ_V_nl1)*y+(8/vrJ_A_nl1)+(8/vrJ_V_nl1)))
+}
+
+#The ideal
+model_ideal1 <- function (x,y) {
+    1/(1 + (1-eJ_nl1)*exp((-4/vrA_nl1)*x+(-4/vrV_nl1)*y+(8/vrA_nl1)+(8/vrV_nl1)))
+}
+
+#The sound-only model
+model_sound1 <- function (x,y) {
+  1/(1 + (1-eJ_nl1)*exp((-4/vrA_nl1)*x+(8/vrA_nl1)))
+}
+
+#The visual-only model
+model_concept1 <- function (x,y) {
+  1/(1 + (1-eJ_nl1)*exp((-4/vrV_nl1)*y+(8/vrV_nl1)))
+}
+
+##Experiment 2
+##############
+
+#The fit
+model_fit2 <- function (x,y) {
+   1/(1 + (1-eJ_nl2)*exp((-4/vrJ_A_nl2)*x+(-4/vrJ_V_nl2)*y+(8/vrJ_A_nl2)+(8/vrJ_V_nl2)))
+}
+
+#The ideal
+model_ideal2 <- function (x,y) {
+    1/(1 + (1-eJ_nl2)*exp((-4/vrA_nl2)*x+(-4/vrV_nl2)*y+(8/vrA_nl2)+(8/vrV_nl2)))
+}
+
+#The sound-only model
+model_sound2 <- function (x,y) {
+  1/(1 + (1-eJ_nl2)*exp((-4/vrA_nl2)*x+(8/vrA_nl2)))
+}
+
+#The visual-only model
+model_concept2 <- function (x,y) {
+  1/(1 + (1-eJ_nl2)*exp((-4/vrV_nl2)*y+(8/vrV_nl2)))
+}
+
+
+##Experiment 3
+##############
+
+#The fit
+model_fit3 <- function (x,y) {
+   1/(1 + (1-eJ_nl3)*exp((-4/vrJ_A_nl3)*x+(-4/vrJ_V_nl3)*y+(8/vrJ_A_nl3)+(8/vrJ_V_nl3)))
+}
+
+#The ideal
+model_ideal3 <- function (x,y) {
+    1/(1 + (1-eJ_nl3)*exp((-4/vrA_nl3)*x+(-4/vrV_nl3)*y+(8/vrA_nl3)+(8/vrV_nl3)))
+}
+
+#The sound-only model
+model_sound3 <- function (x,y) {
+  1/(1 + (1-eJ_nl3)*exp((-4/vrA_nl3)*x+(8/vrA_nl3)))
+}
+
+#The visual-only model
+model_concept3 <- function (x,y) {
+  1/(1 + (1-eJ_nl3)*exp((-4/vrV_nl3)*y+(8/vrV_nl3)))
+}
+
+
+```
+
+```{r echo=FALSE, fig.width=7, fig.height=8}
+
+
+models_exp1 <- joint_exp1 %>% 
+  rename(joint = mean) %>%
+  mutate(Descriptive = model_fit1(sound_dist, concept_dist)) %>%
+  mutate(Optimal = model_ideal1(sound_dist, concept_dist)) %>%
+  mutate(Auditory = model_sound1(sound_dist, concept_dist)) %>%
+  mutate(Visual = model_concept1(sound_dist, concept_dist)) %>%
+  gather(model, pred, Visual, Auditory, Optimal, Descriptive) %>%
+  mutate(experiment = 'Experiment 1')
+
+models_exp2 <- joint_exp2 %>% 
+  rename(joint = mean) %>%
+  mutate(Descriptive = model_fit2(sound_dist, concept_dist)) %>%
+  mutate(Optimal = model_ideal2(sound_dist, concept_dist)) %>%
+  mutate(Auditory = model_sound2(sound_dist, concept_dist)) %>%
+  mutate(Visual = model_concept2(sound_dist, concept_dist)) %>%
+  gather(model, pred, Visual, Auditory, Optimal, Descriptive) %>%
+  mutate(experiment = 'Experiment 2')
+
+models_exp3 <- joint_exp3 %>% 
+  rename(joint = mean) %>%
+  mutate(Descriptive = model_fit3(sound_dist, concept_dist)) %>%
+  mutate(Optimal = model_ideal3(sound_dist, concept_dist)) %>%
+  mutate(Auditory = model_sound3(sound_dist, concept_dist)) %>%
+  mutate(Visual = model_concept3(sound_dist, concept_dist)) %>%
+  gather(model, pred, Visual, Auditory, Optimal, Descriptive) %>%
+  mutate(experiment = 'Experiment 3')
+
+
+models_all <- bind_rows (models_exp1, models_exp2, models_exp3) 
+
+models_all$model <- factor(models_all$model, levels = c('Visual','Auditory', 'Optimal', 'Descriptive'))
+
+correlation_plot <- ggplot(models_all, 
+       aes(x = pred, y = joint, col = factor(concept_dist), 
+           shape = factor(sound_dist))) + 
+  geom_point()+
+ #geom_pointrange(aes(ymin = summary_ci_lower, ymax = summary_ci_upper), 
+  #                position = position_dodge(width = .1), size=0.2) + 
+
+  geom_abline(slope = 1, lty = 2) +
+  xlab("Predictions") +ylab("Human data")+
+  facet_grid(experiment ~ model)+
+theme(aspect.ratio = 0.7, 
+      axis.text=element_text(size=6),
+      strip.text.y = element_text(size = 8))+
+  guides(color=guide_legend(title="Visual Distance")) +
+  guides(shape=guide_legend(title="Auditory Distance")) 
+
+
+#Correlation values 
+
+#Exp 1
+optimal_1 <- subset(models_all, model=='Optimal' & experiment=='Experiment 1')
+descriptive_1 <- subset(models_all, model=='Descriptive' & experiment=='Experiment 1')
+auditory_1 <- subset(models_all, model=='Auditory' & experiment=='Experiment 1')
+visual_1 <- subset(models_all, model=='Visual' & experiment=='Experiment 1')
+
+R2_optimal_1  <- cor(optimal_1$joint, optimal_1$pred)^2 %>%
+  round(2)
+R2_descriptive_1 <- cor(descriptive_1$joint, descriptive_1$pred)^2 %>%
+  round(2)
+R2_auditory_1  <- cor(auditory_1$joint, auditory_1$pred)^2 %>%
+  round(2)
+R2_visual_1  <- cor(visual_1$joint, visual_1$pred)^2 %>%
+  round(2)
+
+#Exp 2
+optimal_2 <- subset(models_all, model=='Optimal' & experiment=='Experiment 2')
+descriptive_2 <- subset(models_all, model=='Descriptive' & experiment=='Experiment 2')
+auditory_2 <- subset(models_all, model=='Auditory' & experiment=='Experiment 2')
+visual_2 <- subset(models_all, model=='Visual' & experiment=='Experiment 2')
+
+R2_optimal_2  <- cor(optimal_2$joint, optimal_2$pred)^2  %>%
+  round(2)
+R2_descriptive_2 <- cor(descriptive_2$joint, descriptive_2$pred)^2 %>%
+  round(2)
+R2_auditory_2  <- cor(auditory_2$joint, auditory_2$pred)^2 %>%
+  round(2)
+R2_visual_2  <- cor(visual_2$joint, visual_2$pred)^2 %>%
+  round(2)
+
+
+#Exp 3
+optimal_3 <- subset(models_all, model=='Optimal' & experiment=='Experiment 3')
+descriptive_3 <- subset(models_all, model=='Descriptive' & experiment=='Experiment 3')
+auditory_3 <- subset(models_all, model=='Auditory' & experiment=='Experiment 3')
+visual_3 <- subset(models_all, model=='Visual' & experiment=='Experiment 3')
+
+R2_optimal_3  <- cor(optimal_3$joint, optimal_3$pred)^2 %>%
+  round(2)
+R2_descriptive_3 <- cor(descriptive_3$joint, descriptive_3$pred)^2 %>%
+  round(2)
+R2_auditory_3  <- cor(auditory_3$joint, auditory_3$pred)^2 %>%
+  round(2)
+R2_visual_3  <- cor(visual_3$joint, visual_3$pred)^2 %>%
+  round(2)
+
+
+
+```
+
+```{r bimodal, fig.cap = "Human responses vs. models' predictions across the three Experiments. Shape represents auditory distance from the target, and color represents visual distance from the target.", fig.align = "center", out.width = "400px", fig.width=7, fig.height=8}
+
+correlation_plot
+
+```
+
+Now we analyse the bimodal case. This is the case where the participants saw the pictures and heard the sounds.
+
+#### Descriptive model
+We first consider the descriptive model where all parameters are fitted to human responses in the bimodal condition. We found $\epsilon=$ `r BiasBi_val` CI [`r BiasBi_ci2`, `r BiasBi_ci1`], $\sigma^2_{Ab}=$ `r audVarBi_val` CI [`r audVarBi_ci1`, `r audVarBi_ci2`] and $\sigma^2_{Vb}=$ `r visVarBi_val` CI [`r visVarBi_ci1`, `r visVarBi_ci2`]. Note that the precision of both the auditory and visual modalities decreased compared to the unimodal conditions. The descriptive model explained `r 100*R2_descriptive_1`% of total variance.  
+
+#### Normative models
+We derived the predictions of the auditory, visual and optimal model by using the values of the variances derived from the unimodal conditions, and the response bias derived from the descriptive model.  Figure\ \@ref(fig:bimodal) compares the predictions of these three models to human responses. The visual, auditory and optimal model explained, respectively, `r 100*R2_visual_1`%, `r 100*R2_auditory_1`%, and `r 100*R2_optimal_1`% of total variance.
+
+#### Cue combination and Modality preference
+We next analyzed the extent to which cue combination was performed in an optimal way, or whether there was a systematic preference for one modality when making decisions in the bimodal condition. We saw that response precision in the auditory modality was slightly higher than that of the visual modality (i.e., $\frac{1}{\sigma^2_A} > \frac{1}{\sigma^2_V}$ ). If modalities were weighed according to their relative reliability (that is, optimally), we would naturally expect the auditory modality to have a higher weight. But this is not what we mean by modality preference. Rather, the phrase refers to the case of potential sub-optimality where participants would rely on one modality beyond what is explained by the relative reliability of the optimal model. 
+
+As explained above, modality preference can be characterized formally as a deviation from the decision threshold's slope predicted by the optimal model. Figure\ \@ref(fig:bias) shows the value of the slope derived from the descriptive model (i.e., $-\frac{\sigma^2_{Vb}}{\sigma^2_{Ab}}$) relative the slope of the optimal model (i.e., $-\frac{\sigma^2_V}{\sigma^2_A}$). The red dotted line represents the case where this proportion is optimal, meaning that both slopes are equal. The blue dotted lines represents the cases where the value of the slope from the descriptive model is double or half that of the optimal model, suggesting a preference for the auditory or the visual modality, respectively. Non-parametric resampling of the data showed no evidence of a deviation from the optimal prediction. 
+
+## Discussion
+Overall, we found that the optimal model explained much of the variance in judgments, and largely more than what can be explained with the auditory or the visual models alone. The relatively high value of the coefficient of determination in the optimal model (`r 100*R2_optimal_1`%) suggests that participants were near-optimal in their responses. However, we see from Figure\ \@ref(fig:bimodal) that responses deviated from the optimal prediction in that they were slightly pulled toward chance (i.e., the value 0.5). This is due to the increase in the value of the variance associated with each modality. Note however that, despite this increase in randomness, our analysis of modality preference showed that the relative values of these variances were not different Figure\ \@ref(fig:bias). Thus, 1) the bimodal presentation introduced a certain level of randomness in the participants' responses, and 2) this increased randomness did not affect the relative weighting of both modalities, i.e., participants were weighting modalities according to their relative reliability.  This situation corresponds to the first case of sub-optimally described in the predictions, above.
+
+In Experiment 1, we tested word recognition when there was multimodal uncertainty in terms of category membership only. In real life, however, tokens can undergo distortions due to noisy factors in the environment (e.g., car noise in the background, blurry vision in a foggy weather,..)\footnote{Note that we are considering environmental noise, which is different from the noise inherent to perception.}. In Experiment 2 and 3, we explore this additional level of uncertainty. 
+
+# Experiment 2
+
+Imagine that the speaker generates a target production $t$ from an auditory category
+$t | A \sim N(\mu_{A}, \sigma^2_{A})$. In Experiment 1, we assumed that the observer could directly retrieve this production token. But if the observer is in a noisy environment, they do not hear exactly this produced target, but the target perturbed by noise. We assume this noise to be normally distributed: $a | t \sim N(t, \sigma^2_{N})$, and we integrate over $t$. We obtain the following simple expression:
+
+$$ a | A \sim N(\mu_{A}, \sigma^2_{A}+\sigma^2_{N})$$
+
+In this experiment, we explored the effect of this added noise on performance in our task. We tested a case where the background noise was added to the auditory modality. We were interested to know if participants would treat this new source of uncertainty as predicted by the optimal model, and whether noise in one modality would lead to some systematic preference for the non-noisy modality.  
+
+
+## Methods
+
+### Participants
+
+A sample of `r N_all_2` participants was recruited online through Amazon Mechanical Turk. We used the same exclusion criteria as in the previous experiment. The final sample consisted of (N = `r N_good_2`) participants.
+
+### Stimuli and Procedure
+
+We used the same visual stimuli as in Experiment 1. We also used the same auditory stimuli, but we convolved each item with Brown noise of amplitude 1 using the audio editor Audacity (2.1.2) (signal to noise ratio XXXX). The procedure was exactly the same as in the previous experiment, except that test stimuli (but not the target) were presented with the new noisy auditory stimuli.
+
+## Results and analysis
+
+```{r echo=FALSE}
+
+#Bootstrap sample parameters
+
+lmfit <- function(data, indices) {
+  
+  myd = data[indices, ]
+  
+  s_data <- myd %>%
+    filter(condition == "sound")
+
+  v_data <- myd %>%
+    filter(condition == "concept") 
+
+  j_data <- myd %>%
+    filter(condition == "joint")
+    
+  s_nl <- nls(answer ~ 1/(1+(1-e)*exp((-4/vrA)*sound_dist+(8/vrA))), data=s_data, start = list(e=0, vrA=2), nls.control(warnOnly = TRUE))
+
+ c_nl <- nls(answer ~ 1/(1+(1-e)*exp((-4/vrV)*concept_dist+(8/vrV))), data=v_data, start = list(e=0, vrV=2), nls.control(warnOnly = TRUE))
+
+ j_nl <- nls(answer ~ 1/(1+(1-e)*exp((-4/vrA_j)*sound_dist+(-4/vrV_j)*concept_dist+(8/vrA_j)+(8/vrV_j))), data=j_data, start = list(e=0, vrA_j=2, vrV_j=2), nls.control(warnOnly = TRUE))
+
+  
+  s_va <- coef(s_nl)["vrA"]
+  s_e <- coef(s_nl)["e"]
+  
+  v_va <- coef(c_nl)["vrV"]
+  v_e <- coef(c_nl)["e"]
+  
+  decision_ideal=v_va/s_va
+
+  j_va_s=coef(j_nl)["vrA_j"]
+  j_va_v=coef(j_nl)["vrV_j"]
+  j_e=coef(j_nl)["e"]
+  
+  decision_fit=j_va_v/j_va_s
+  
+  preference = decision_fit/decision_ideal
+  
+  MyBoot=c(s_va, s_e, v_va, v_e, j_va_s, j_va_v, j_e, decision_ideal, decision_fit, preference)
+  
+  
+  return(MyBoot) 
+
+  }
+
+results1 <- boot(data=exp2_good, statistic = lmfit, R = 10000)
+
+#Auditory variance:
+audVar=boot.ci(results1, index = 1, type = c("bca"), conf = 0.95)
+audVar_val=audVar$t0 
+audVar_ci1=audVar$bca[4]
+audVar_ci2=audVar$bca[5]
+
+#Auditory bias:
+audBias=boot.ci(results1, index = 2, type = c("bca"), conf = 0.95)
+audBias_val=audBias$t0 
+audBias_ci1=audBias$bca[4]
+audBias_ci2=audBias$bca[5]
+
+#Visual variance:
+visVar=boot.ci(results1, index = 3, type = c("bca"), conf = 0.95)
+visVar_val=visVar$t0 
+visVar_ci1=visVar$bca[4]
+visVar_ci2=visVar$bca[5]
+
+#Visual bias:
+visBias=boot.ci(results1, index = 4, type = c("bca"), conf = 0.95)
+visBias_val=visBias$t0 
+visBias_ci1=visBias$bca[4]
+visBias_ci2=visBias$bca[5]
+
+#Bimodal Auditory variance:
+audVarBi=boot.ci(results1, index = 5, type = c("bca"), conf = 0.95)
+audVarBi_val=audVarBi$t0 
+audVarBi_ci1=audVarBi$bca[4]
+audVarBi_ci2=audVarBi$bca[5]
+
+#Bimodal Visual variance:
+visVarBi=boot.ci(results1, index = 6, type = c("bca"), conf = 0.95)
+visVarBi_val=visVarBi$t0 
+visVarBi_ci1=visVarBi$bca[4]
+visVarBi_ci2=visVarBi$bca[5]
+
+#Bimodal bias:
+BiasBi=boot.ci(results1, index = 7, type = c("bca"), conf = 0.95)
+BiasBi_val=BiasBi$t0 
+BiasBi_ci1=BiasBi$bca[4]
+BiasBi_ci2=BiasBi$bca[5]
+
+#Ideal modality wieghing
+prefIdeal=boot.ci(results1, index = 8, type = c("bca"), conf = 0.95)
+prefIdeal_val=prefIdeal$t0 
+prefIdeal_ci1=prefIdeal$bca[4]
+prefIdeal_ci2=prefIdeal$bca[5]
+
+#fit modality wieghing
+prefFit=boot.ci(results1, index = 9, type = c("bca"), conf = 0.95)
+prefFit_val=prefFit$t0 
+prefFit_ci1=prefFit$bca[4]
+prefFit_ci2=prefFit$bca[5]
+
+#Modality bias 
+bias=boot.ci(results1, index = 10, type = c("bca"), conf = 0.95)
+bias_val_2=bias$t0 
+bias_ci1_2=bias$bca[4]
+bias_ci2_2=bias$bca[5]
+
+```
+
+### Unimodal conditions
+
+We fit a model for each modality, collapsed across all participants. For the auditory modality, our parameter estimates were $\epsilon_A=$ `r audBias_val` CI [`r audBias_ci2`, `r audBias_ci1`] and $\sigma^2_A+\sigma^2_N=$ `r audVar_val` CI [`r audVar_ci1`, `r audVar_ci2`]. For the visual modality, we found $\epsilon_V=$ `r visBias_val` CI [`r visBias_ci2`, `r visBias_ci1`] and $\sigma^2_V=$ `r visVar_val` CI [`r visVar_ci1`, `r visVar_ci2`].  Figure\ \@ref(fig:unimodal) shows responses in the unimodal conditions as well as the corresponding fits. The visual data is a replication of the vidual data in Experiment 1. As for the auditory data, we see that, in contrast to Experiment 1, responses were less categorical/flatter (showing more uncertainty).
+
+### Bimodal condition
+
+#### Descriptive model
+We fit the descriptive model to human responses in the bimodal condition, collapsed across all articipants. We estimated $\epsilon=$ `r BiasBi_val` CI [`r BiasBi_ci2`, `r BiasBi_ci1`], $\sigma^2_{Ab}+\sigma^2_{Nb}=$ `r audVarBi_val` CI [`r audVarBi_ci1`, `r audVarBi_ci2`], and $\sigma^2_{Vb}=$ `r visVarBi_val` CI [`r visVarBi_ci1`, `r visVarBi_ci2`]. The fit explained `r R2_descriptive_2`% of total variance.
+
+#### Normative models
+We derived the predictions of the auditory, visual and optimal model by using the values of the variances derived from the unimodal conditions, and the response bias derived from the descriptive model. Figure\ \@ref(fig:bimodal) compares the predictions of these three models to human responses. The visual, auditory and optimal model explained, respectively, `r 100*R2_visual_2`%, `r 100*R2_auditory_2`%, and `r 100*R2_optimal_2`% of total variance. Note that, in contrast to Experiment 1, the visual model explains more variance than the auditory model.
+
+#### Modality preferences
+Participants' decision threshold suggested a preference for the visual modality (the non-noisy modality). Indeed non-parametric resampling of the data showed a decrease in the value of the slope in the descriptive model compared to the optimal model Figure\ \@ref(fig:bias).
+
+## Discussion
+We found, similar to Experiment 1, that participants were generally near optimal (explaining  `r 100*R2_optimal_2`% of total variance), and that the optimal model explained more variance than the auditory or the visual models alone.  We also found a similar discrepancy from the optimal model as precision dropped for both the auditory and the visual modalities. As for the weghting scheme used by participants, contrary to Experiment 1 where modalities were weighted according to their optimal relative reliability, we found in this experiment that the visual modality had a greater weight than what is  expected from its relative reliability. This situation corresponds to the second case of sub-optimally described in the predictions above.
+
+In Experiment 2, we tested the case where we added background noise to the auditory modality. In Experiment 3, we test the situation where we added noise to the visual modality.
+
+# Experiment 3
+
+We follow exactly the same formal reasoning in this case, as we did in Experiment 2. Imagine that the speaker points towards a target referent $t_v$ from a visual category $t_v | V \sim N(\mu_{V}, \sigma^2_{V})$. If the observer is in a noisy environment (e.g., foggy weather), they might see this target referent in a blurry way. We assume the blur to be normally distributed: $a | t_v \sim N(t_v, \sigma^2_{N})$, and we integrate over $t_v$. We obtain an expression formally similar to the one obtained in Experiment 2:
+
+$$ v | V \sim N(\mu_{V}, \sigma^2_{V}+\sigma^2_{N})$$
+
+Below we explored the effect of this added visual blur on performance in our task. 
+
+## Methods
+
+### Participants
+A planned sample of `r N_all_3` participants was recruited online through Amazon Mechanical Turk. We used the same exclusion criteria as in the previous experiment. The final sample consisted of (N = `r N_good_3`) participants.
+
+### Stimuli and Procedure
+We used the same auditory stimuli as in Experiment 1. We also used the same visual stimuli, but we blurred the tokens using the editor XXX (signal to noise ration XXX). The experimental procedure was exactly the same as in the previous Experiments.
+
+## Results and analysis
+
+```{r echo=FALSE}
+
+#Bootstrap sample parameters
+
+lmfit <- function(data, indices) {
+  
+  myd = data[indices, ]
+  
+  s_data <- myd %>%
+    filter(condition == "sound")
+
+  v_data <- myd %>%
+    filter(condition == "concept") 
+
+  j_data <- myd %>%
+    filter(condition == "joint")
+    
+  s_nl <- nls(answer ~ 1/(1+(1-e)*exp((-4/vrA)*sound_dist+(8/vrA))), data=s_data, start = list(e=0, vrA=2), nls.control(warnOnly = TRUE))
+
+ c_nl <- nls(answer ~ 1/(1+(1-e)*exp((-4/vrV)*concept_dist+(8/vrV))), data=v_data, start = list(e=0, vrV=2), nls.control(warnOnly = TRUE))
+
+ j_nl <- nls(answer ~ 1/(1+(1-e)*exp((-4/vrA_j)*sound_dist+(-4/vrV_j)*concept_dist+(8/vrA_j)+(8/vrV_j))), data=j_data, start = list(e=0, vrA_j=2, vrV_j=2), nls.control(warnOnly = TRUE))
+
+  
+  s_va <- coef(s_nl)["vrA"]
+  s_e <- coef(s_nl)["e"]
+  
+  v_va <- coef(c_nl)["vrV"]
+  v_e <- coef(c_nl)["e"]
+  
+  decision_ideal=v_va/s_va
+
+  j_va_s=coef(j_nl)["vrA_j"]
+  j_va_v=coef(j_nl)["vrV_j"]
+  j_e=coef(j_nl)["e"]
+  
+  decision_fit=j_va_v/j_va_s
+  
+  preference = decision_fit/decision_ideal
+  
+  MyBoot=c(s_va, s_e, v_va, v_e, j_va_s, j_va_v, j_e, decision_ideal, decision_fit, preference)
+  
+  
+  return(MyBoot) 
+
+  }
+
+
+results1 <- boot(data=exp3_good, statistic = lmfit, R = 10000)
+
+#Auditory variance:
+audVar=boot.ci(results1, index = 1, type = c("bca"), conf = 0.95)
+audVar_val=audVar$t0 
+audVar_ci1=audVar$bca[4]
+audVar_ci2=audVar$bca[5]
+
+#Auditory bias:
+audBias=boot.ci(results1, index = 2, type = c("bca"), conf = 0.95)
+audBias_val=audBias$t0 
+audBias_ci1=audBias$bca[4]
+audBias_ci2=audBias$bca[5]
+
+#Visual variance:
+visVar=boot.ci(results1, index = 3, type = c("bca"), conf = 0.95)
+visVar_val=visVar$t0 
+visVar_ci1=visVar$bca[4]
+visVar_ci2=visVar$bca[5]
+
+#Visual bias:
+visBias=boot.ci(results1, index = 4, type = c("bca"), conf = 0.95)
+visBias_val=visBias$t0 
+visBias_ci1=visBias$bca[4]
+visBias_ci2=visBias$bca[5]
+
+#Bimodal Auditory variance:
+audVarBi=boot.ci(results1, index = 5, type = c("bca"), conf = 0.95)
+audVarBi_val=audVarBi$t0 
+audVarBi_ci1=audVarBi$bca[4]
+audVarBi_ci2=audVarBi$bca[5]
+
+#Bimodal Visual variance:
+visVarBi=boot.ci(results1, index = 6, type = c("bca"), conf = 0.95)
+visVarBi_val=visVarBi$t0 
+visVarBi_ci1=visVarBi$bca[4]
+visVarBi_ci2=visVarBi$bca[5]
+
+#Bimodal bias:
+BiasBi=boot.ci(results1, index = 7, type = c("bca"), conf = 0.95)
+BiasBi_val=BiasBi$t0 
+BiasBi_ci1=BiasBi$bca[4]
+BiasBi_ci2=BiasBi$bca[5]
+
+#Ideal modality wieghing
+prefIdeal=boot.ci(results1, index = 8, type = c("bca"), conf = 0.95)
+prefIdeal_val=prefIdeal$t0 
+prefIdeal_ci1=prefIdeal$bca[4]
+prefIdeal_ci2=prefIdeal$bca[5]
+
+#fit modality wieghing
+prefFit=boot.ci(results1, index = 9, type = c("bca"), conf = 0.95)
+prefFit_val=prefFit$t0 
+prefFit_ci1=prefFit$bca[4]
+prefFit_ci2=prefFit$bca[5]
+
+#Modality bias 
+bias=boot.ci(results1, index = 10, type = c("bca"), conf = 0.95)
+bias_val_3=bias$t0 
+bias_ci1_3=bias$bca[4]
+bias_ci2_3=bias$bca[5]
+
+```
+
+### Unimodal conditions
+We fit a model for each modality, collapsed across participants. For the auditory modality, our parameter estimates were $\epsilon_A=$ `r audBias_val` CI [`r audBias_ci2`, `r audBias_ci1`] and $\sigma^2_A=$ `r audVar_val` CI [`r audVar_ci1`, `r audVar_ci2`]. For the visual modality, we found $\epsilon_V=$ `r visBias_val` CI [`r visBias_ci2`, `r visBias_ci1`] and $\sigma^2_V+\sigma^2_N=$ `r visVar_val` CI [`r visVar_ci1`, `r visVar_ci2`].  Figure\ \@ref(fig:unimodal) shows responses in the unimodal conditions as well as the corresponding fits.
+The auditory data is a replication of the auditory data in Experiment 1. As for the visual data, we see that, in contrast to Experiment 1 and 2, responses were flatter, showing much more uncertainty.
+
+### Bimodal condition
+
+#### Descriptive model
+We fit the descriptive model to human responses in the bimodal condition, collapsed across participants. We estimated $\epsilon=$ `r BiasBi_val` CI [`r BiasBi_ci2`, `r BiasBi_ci1`], $\sigma^2_{Ab}=$ `r audVarBi_val` CI [`r audVarBi_ci1`, `r audVarBi_ci2`], and $\sigma^2_{Vb}+\sigma^2_{Nb}=$ `r visVarBi_val` CI [`r visVarBi_ci1`, `r visVarBi_ci2`]. The fit explained `r 100*R2_descriptive_3`% of total variance.
+
+#### Normative models
+We derived the predictions of the auditory, visual and optimal model by using the values of the variances derived from the unimodal conditions, and the response bias derived from the descriptive model.  Figure\ \@ref(fig:bimodal) compares the predictions of these three models to the human responses. The visual, auditory and optimal model explained, respectively, `r 100*R2_visual_3`%, `r 100*R2_auditory_3`%, and `r 100*R2_optimal_3`% of total variance. 
+
+#### Modality preferences
+Participants' decision threshold suggested a preference for the auditory modality (the non-noisy modality). Indeed non-parametric resampling of the data showed an increase in the value of the slope in the descriptive model compared to the optimal model Figure\ \@ref(fig:bias).
+
+## Discussion
+We found that the optimal model accounted for almost all the variance ($r^2 =$ `r R2_optimal_3`). However, whereas in previous experiments, the optimal model explained more variance than the auditory or the visual models, here the auditory model explained at least as much variance ($r^2 =$ `r R2_auditory_3`). Thus, though participants were still sensitive to variation in the noisy visual data in the unimodal condition, they tended to ignore this information in the bimodal condition, and relied almost exclusively on the non-noisy auditory modality. This behaviour is not so much a qualitative difference from Experiment 2 (where participants relied on both the noisy and the non-noisy modality in the bimodal condition), as much as it is the result of a floor effect. Indeed, noise made the visual modality way less steep and barely perceptible in the unimodal condition Figure\ \@ref(fig:unimodal). So when we had an additional general drop in precision in the bimodal condition (similar to what we found in Experiment 1 and 2),  participants were no longer able to extract any useful information. The reason why we saw this floor effect when we added noise to the visual modality (Experiment 3), and not when added noise to the auditory modality (Experiment 2), is the fact that our visual stimuli was originally perceived less categorically and with less certainty than the auditory data was. This made it more likely for the visual categorization function to become flat and uninformative after a few drops in precision due to noise on the one had, and to the randomness induced by the arbitrary association on the other hand. 
+
+The general finding corresponds to the third case of sub-optimality described above. Indeed, precision dropped for both modalities in the bimodal condition compared to the unimodal condition. But the drop was much greater for the visual modality, resulting in a much lower weight assigned to it than what is expected from its optimal relative reliability. Therefore, just like participants over-relied on the visual modality when the auditory modality was noisy (Experiment 2), they also over-relied on the auditory modality when the visual modality was noisy (Experiment 3).
+
+
+```{r }
+#Modality bias
+
+preference = c(bias_val_1, bias_val_2, bias_val_3 )
+experiment =c("Exp 1 \n", "Exp 2 \n (noisy audio)", "Exp 3 \n (noisy visual)")
+ci_low=c(bias_ci1_1, bias_ci1_2, bias_ci1_3)
+ci_up=c(bias_ci2_1, bias_ci2_2, bias_ci2_3)
+
+pref = data.frame(preference, ci_low, ci_up)
+
+bias <- ggplot(pref, 
+       aes(x = experiment, y=preference)) +
+geom_point(size=3)+
+  geom_errorbar(aes(ymin = ci_low, ymax = ci_up), 
+                  width = 0.1,
+                  position = position_dodge(width = 0.1))+
+  geom_hline(yintercept = 1, linetype=2, color="red", size=1)+
+  
+  geom_hline(yintercept = 0.5, linetype=2, color="blue")+
+  
+  geom_hline(yintercept = 2, linetype=2, color="blue")+
+  
+  theme(aspect.ratio = 1, axis.text=element_text(size=10))+
+  xlab("") +ylab("Relative weighing")+
+  scale_y_log10(breaks=c(0.5,1,2),labels=c("Visual bias","Optimal","Auditory bias"))
+  #coord_cartesian(ylim=c(0, 2.5))
+
+```
+
+```{r bias, fig.cap = "Relative weighing of evidence from the auditory stimulus vs. evidence from the visual stimulus across the three Experiments (log-scaled). The red dashed  line  shows the  prediction  of the model  if the weighting is optimal,  and the  blue dashed lines  show   predictions if participants deviated from  optimality by relying  twice  as much  on the meaning  category  (strong meaning bias) or twice   as  much  on  the sound category (strong  sound bias).", fig.align = "center", out.width = "400px"}
+bias
+
+```
+
+# General Discussion
+Understanding language, such as word-referent associations, often requires both the ability to combine arbitrary multimodal input, and the ability to deal with uncertainty. In this work, we explored a case where both abilities were at play. We studied the case of identifying a word when both its form (auditory) and its referent (visual) were ambiguous with respect to their category membership (Experiment 1), when the form was perturbed with additional background noise (Experiment 2), and when the referent was perturbed with additional visual noise (Experiment 3). We introduced a model that instantiated an ideal/optimal observer, predicting how information from each modality could be combined in an optimal way. In all Experiments, participants showed many patterns of optimal behaviour. Quantitatively speaking, the optimal model accounted, respectively, for `r 100*R2_optimal_1`%, `r 100*R2_optimal_2`%, and `r 100*R2_optimal_3`% of the variance in human data.  When compared to the predictions of the visual or the auditory models, participants generally relied on both modalities to make their decisions in the bimodal condition. Indeed, in Experiment 1 and 2, the optimal model accounted for more variance in human data than the auditory or the visual models did. In Experiment 3, participants appeared to rely on one modality, but as we explained in the intermediate discussion, this is likely a floor effect, due to the fact that noise made the visual input barely perceivable. Moreover, in Experiment 1, which did not involve background noise, participants not only relied on both modalities, but weighted these modalities according to the prediction of the optimal model, that is, according to their relative reliability. 
+
+Besides these patterns of optimal behavior, we documented two interesting cases of sub-optimality. First, in all Experiments, the variance associated with each modality increased in the bimodal condition compared to the unimodal conditions. This means that participants responded slightly more randomly in the bimodal condition than they did in the unimodal conditions. This finding contrasts with research on optimal multisensory integration where associations tend to lead to a higher precision [@ernst02]. However, there is a crucial difference between these two situations. Research on optimal multisensory integration deals with redundant multimodal cues, and these cues are integrated into a unified percept (such as the size or the location of an object). In contrast, the word-referent association is usually arbitrary and, in particular, the cues are not supposed to correlate perceptually. Therefore the brain cannot form a unified percept, rather, it must encode information separately from both modalities and retain this encoding through the decision making process. Retaining two separate cues at the same time instead of forming one unified percept (as in multisensory integration of redundant cues), or instead of retaining only one cue (as in the unimodal case), is likely to place extra-demand on cognitive resources, which, in turn, can cause general performance to drop. Indeed, there is evidence that cognitive load has a detrimetnal effect on word recognition, which can be explained by a reduction in perceptual acuity [@mattys11].
+
+The second case of sub-optimality is related to how participants weighed the cues from the visual and the auditory in a noisy context. In contrast to Experiment 1 where the combination was indistinguishable from the optimal prediction, resutls of Experiment 2 and 3 which involved noise in one modality, showed that participants had a preference for the other (non-noisy) modality. Crucially, this preference was beyond what is explained by the relative reliability (hence the sub-optimality). From previous empirical studies, we know that when the speech signal is degraded, people tend to compensate by relying more on other sources of information such as the accompanying visual cues (i.e., lip movements) or the semantic/syntactic context [see @mattys12 for a review]. However, and generally speaking, these studies do not differentiate between an optimal compensatory strategy (i.e., relying more on the alternative source while using all information still available in the distorted signal), and a sub-optimal strategy (i.e., relying more on the alternative source while ignoring at least some of the information still available in the distorted signal). The sub-optimal behavior is possibly related to the fact that language understanding under degraded listening conditions is cognitively more taxing than language understanding under normal conditions [@Ronnberg10]. This fact can lead to a preference/bias towards alternative sources of information when these sources are available.
+
+## Implication for word learning
+
+In this study, we explored the mechanism of word identification, but in a simple case when the underlying visual and auditory categories were familiar. Indeed, on the visual side, cat and dog tokens belong obviously to existing visual categories. On the auditory side, though the words ("ada"/"aba") are novel, the phonemic categories that differentiate the words are familiar (i.e., /d/ and /b/). In the context of early word learning, however, children are often learning both the categories and their mapping at the same time. In fact, children start learning visual and sound categories at an early age [e.g., @quinn93;@werker1984], and there is evidence that word-referent-like interaction operates at the same time, even when the categories are not yet fully mastered [e.g., @waxman1995; @yeung09]. In fact, @fourtassi2014a proposed that this interaction can create a synergy (or a bootstrapping effect) whereby progress made on one level (e.g., the meaning categories) can benefit the other level (the sound categories).
+
+In what follows we explain how an account that combines both category learning and optimal multimodal integration can proceed, and how such account can provide us with a useful developmental framework. In the light of this framework, we speculate about possible new interpretation of some puzzling results in early word learning [@stager1997 and seq]. For starters, remember that one assumption of the model is that visual and auditory categories can be characterized with a variance that determines their precision/reliability. At the behavioral level, the variance is related to the shape of the categorization function: a small variance corresponds to a rather steep categorization function, meaning that one can tell with high certainty whether or not a token belongs to the category at hand. Vice versa, a large value of the variance corresponds to a rather flat categorization function, which means that for most tokens, one cannot tell with high certainty whether or not these tokens belong to the category at hand.  
+
+How can this formal characterization fit in a developmental scenario? One could imagine that, initially, visual and auditory categories have relatively large variances, and that development consists in reducing the values of the variances as evidence accumulates, making the categories more refined and precise. A scenario similar to this one has been previously suggested to explain the development of early sound categories. For example, @yoshida2009 suggested that the early categories may be noisier or that they may be encoded with relatively lower confidence. For the semantic categories, we can find similar (although perhaps not identical) ideas. For instance, Clark (1973) suggested that the initial meaning categories tend to be larger than adult categories, since fewer features are used to pick out referents (e.g., dog for all four-legged animal, ball for all round objects).
+
+The combination of this developmental scenario in terms of category variance with the optimal integration account introduced in this paper provides possible new insights into the mechanism of word learning. Let's elucidate this idea through an example in the developmental literature. @stager1997 showed that 14 m.o (as opposed to 17 m.o) have difficulties mapping two minimally different sounds (e.g., "bih"/"dih") to two novel objects, despite the fact that they can perceptually differentiate these sounds. Our proposal explains these patterns of failure and success in terms of developmental changes in the variances associated with the visual and phonological categories, combined with the ability to integrate sound and visual cues according to their reliability. Suppose that both members of a given sound contrast ("bin"/"din") initially fall within the uncertainty range of a single sound category. If this uncertainty diminishes with age (as the category gets more refined), then what used to be likely at a certain point in development (e.g., 14 m.o), may later become unlikely. In particular, at 17, m.o, it may become necessary to attribute the sound contrast to two neighboring categories instead of a single one. But how can 14 m.o possibly consider one broad category for both sounds if these sounds are paired with different objects? This is where the optimal combination account may come into play. Indeed, even if the objects are perceptually different, they may still be similar in the 14 m.o's early semantic space. If babies make categorical decision based on both auditory and visual cues, then having evidence that the auditory tokens belong to the same category can prompt them to consider the possibility that even the objects are variations within the same (broad) semantic category. Thus, 14 m.o may be learning one broad word-referent association instead of two specific associations. So what was conidered a "failure" in learning might, in fact, be the optimal decision within the 14 m.o's own developmental context!
+
+This account makes two main predictions. First, if the sounds are more acoustically different (e.g., "lif"/"neem" instead of ""bih"/"dih"), babies would be more likely to posit and learn two word-referent associations, because there would be more evidence pointing in that direction from the auditory side. Second, if the objects are more semantically distant (a living object vs. a non-living object, instead of the two perceptually different toys used in the original study), babies would be more likely to posit and learn two word-referent associations, because now there would be more evidence pointing in that direction from the visual side. In fact, @stager1997 tested and proved the first prediction. The second prediction remains to be tested. If proven, it would provides support to the optimal combination account in early language learning.
+
+
+
+# References
+```{r create_r-references}
+r_refs(file = "references.bib")
+```
+
+\setlength{\parindent}{-0.5in}
+\setlength{\leftskip}{0.5in}
