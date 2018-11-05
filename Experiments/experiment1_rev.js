@@ -111,7 +111,7 @@ var SounStim_preTask = ['aba09','aba09','aba01','aba01'];
      
     var preTask_instruct="This first part of the experiment serves as a training for the task that you will perform later. Please take enough time to read and understand the following instructions. <br><br> An alien will be naming to his friend two objects from the planet Earth: a "+first_obj+" and a "+second_obj+". The alien will not be speaking in English, but in an alien language. In this language, a "+first_obj+" is called "+first_word+" and a "+second_obj+" is called "+second_word+". <br><br> In each situation, the alien will be naming two objects: the first object will show on the left, and will always be a "+first_obj+"-"+first_word+". The second object will show on the right and will be either another "+first_obj+"-"+first_word+", or a "+second_obj+"-"+second_word+".<br><br> Your task is to help the other alien decide if the second item is another "+first_obj+"-"+first_word+" (by choosing 'same') or a "+second_obj+"-"+second_word+" (by choosing 'different') <br><br> Click continue for further instructions!";
 
-    var Task_instruct="Now you will start the real experiment. Please take enough time to read and understand the following instructions. Your perfromance  should reflect this understanding:<br><br> Similar to the training, the first item will always involve the same "+first_obj+"-"+first_word+", however the second item will now bring two difficuties: <br><br> 1) The first difficulty is that there will be slight differences in the pronounciation, and it can sometimes be hard to distinguish "+first_word+" from "+second_word+". <br><br> 2) The second difficulty is that "+second_obj+"s and "+first_obj+"s now come in similar shapes, and it can sometimes be difficult to distinguish the picture of a "+second_obj+" from the picture of a "+first_obj+".<br><br> Click continue for instructions on how to overcome these difficulties!"
+    var Task_instruct="Now you will start the real experiment. Please take enough time to read and understand the following instructions. Your perfromance  should reflect this understanding:<br><br> Similar to the training, the first item will always involve the same "+first_obj+"-"+first_word+", however the second item will now bring two difficuties: <br><br> 1) The first difficulty is that there will be slight differences in the pronounciation, and it can sometimes be hard to distinguish "+first_word+" from "+second_word+". <br><br> 2) The second difficulty is that "+second_obj+"s and "+first_obj+"s now come in similar shapes, and it can sometimes be difficult to distinguish the picture of a "+second_obj+" from the picture of a "+first_obj+".<br><br> Click to continue!"
 
     var Joint_instructions= "In this part of the experiment, the other alien will be able to see the objects and hear the words.<br><br> You should help him decide if the second item is another "+first_obj+"-"+first_word+" (by choosing 'same') or a "+second_obj+"-"+second_word+" (by choosing 'different'). <br><br> <b> Remember that both the pictures and the sounds can be ambiguous. <br><br> To overcome these difficulties, you should base your decision on BOTH the sounds and the pictures.</b><br><br><b><font color='red'>IMPORTANT: Every situation is different, and the correct answer will change from one situation to another depending on both the sounds and the pictures, so do not base your answers on the pictures alone or the sounds alone.</b></font> <br><br> If you are not sure, use your intuition and give the answer that is more likely to be true!";
 
@@ -289,7 +289,7 @@ myTrials.push(myTrial={
 
 //For the preTask trials, I give the correct answer in  "trial order"
 
-/*
+
 for (i=0; i < total_pre_joint; i++){
     myTrial = {
         trial_number: i+1,
@@ -378,7 +378,7 @@ for (i=0; i < total_pre_concept; i++){
    myTrials.push(myTrial);
 }
 
-*/
+
 
 //the real Task
 //////////////////
@@ -390,9 +390,24 @@ for (i=0; i < total_pre_concept; i++){
 
 //Here define the big table
 
+myTrials.push(myTrial={
+        trial_number: '',
+        trial_order:'',
+        trial_type: "Task_instructions",
+        block:'',
+        chunk:'',
+        concept_l:'',
+        concept_r:'',
+        concept_dist:'',
+        sound_l:'',
+        sound_r:'',
+        sound_dist: '',
+        conditon:''
+        
+        });
 
 
-for (b=1; b < 3 ; b++){
+for (b=1; b < 5 ; b++){
     
 var myTrials_sound=[];
 var myTrials_concept=[];
@@ -400,7 +415,7 @@ var myTrials_joint=[]
   
 var chunk1 = "<center><font size='5'>You are now going to start: </br></br>The testing chunk number <b>"; 
     
-var chunk2= "</b> (out of <b>4</b>)</br></br>The task is the same in all the chunks.</br></br>You may take a small pause before the start.</br></br>Please stay focused till the end of the chunck!</font></center>";
+var chunk2= "</b> (out of <b>4</b>)</font></br></br>The task and instructions are the same in all the chunks.</br></br>You may take a small pause before every chunk.</br></br>Please stay focused till the end of the chunck!</center>";
     
     
 myTrials.push(myTrial={
@@ -420,21 +435,6 @@ myTrials.push(myTrial={
         });
 
 
-myTrials.push(myTrial={
-        trial_number: '',
-        trial_order:'',
-        trial_type: "Task_instructions",
-        block:'',
-        chunk:'',
-        concept_l:'',
-        concept_r:'',
-        concept_dist:'',
-        sound_l:'',
-        sound_r:'',
-        sound_dist: '',
-        conditon:''
-        
-        });
 
 //Sound condition
 
@@ -496,7 +496,7 @@ myTrials_sound.push(myTrial={
         sound_dist: '',
         conditon:''
         });
- /*
+
 //second block
 for (i=0; i < total_sound; i++){
     myTrial = {
@@ -672,7 +672,6 @@ for (i=0; i < total_joint; i++){
     myTrials_joint.push(myTrial);
 }
 
-*/
 
 //Briefing 
 
