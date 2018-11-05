@@ -481,21 +481,7 @@ for (i=0; i < total_sound; i++){
     myTrials_sound.push(myTrial);
 }
 
-    //Pause between two blocks
-myTrials_sound.push(myTrial={
-        trial_number: '',
-        trial_order:'',
-        trial_type: "pause",
-        block:'',
-        chunk:'',
-        concept_l:'',
-        concept_r:'',
-        concept_dist:'',
-        sound_l:'',
-        sound_r:'',
-        sound_dist: '',
-        conditon:''
-        });
+
 
 //second block
 for (i=0; i < total_sound; i++){
