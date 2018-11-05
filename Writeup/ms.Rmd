@@ -389,7 +389,7 @@ where $M_W=(\mu_A, \mu_V)$ and $\Sigma_W$ are the mean and the covariance matrix
   \end{array} } \right]
 \]
 
-```{r model, out.width = "\\textwidth", fig.pos = "!h", fig.cap = "Illustration of the model using simulated data. A word category is defined as the joint bivariate distribution of an auditory category (horizontal, bottom panel) and a visual semantic category (vertical, left panel). Upon the presentation of a word token $w$, participants guess whether it is sampled from the word type $W_1$ or from the word type $W_2$. Decision threshold is where the guessing probability is 0.5."}
+```{r model, out.width = '\\textwidth', fig.pos = "!h", fig.cap = "Illustration of the model using simulated data. A word category is defined as the joint bivariate distribution of an auditory category (horizontal, bottom panel) and a visual semantic category (vertical, left panel). Upon the presentation of a word token $w$, participants guess whether it is sampled from the word type $W_1$ or from the word type $W_2$. Decision threshold is where the guessing probability is 0.5."}
 knitr::include_graphics("pictures/model.png", dpi = 108)
 ```
 
