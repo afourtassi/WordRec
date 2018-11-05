@@ -950,7 +950,7 @@ var experiment = {
         experiment.data.tri_order.push(current_trial.trial_order);  
         experiment.data.tri_type.push(current_trial.trial_type);
         experiment.data.block.push(current_trial.block);  
-        experiment.data.block.push(current_trial.chunk); 
+        experiment.data.chunk.push(current_trial.chunk); 
         experiment.data.con_dist.push(current_trial.concept_dist);
         experiment.data.sou_dist.push(current_trial.sound_dist);
         
