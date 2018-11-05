@@ -126,9 +126,10 @@ var SounStim_preTask = ['aba09','aba09','aba01','aba01'];
 
     var preConcept_instructions= "In this part of the training, the other alien will only be able to see the objects, he will not be able to hear the words.<br><br> You should help him decide if the second item is another "+first_obj+"-"+first_word+" (by choosing 'same') or a "+second_obj+"-"+second_word+" (by choosing 'different')";
 
-    var Pause= "This is a small pause. When you are ready, click to continue the task!";
+    var Pause= "<center><font size='5'>This is a small pause.</br></br>When you are ready, click to continue the task!</font></center>";
 
-    
+
+
 
 $(".f_o").text(first_obj);
 $(".f_w").text(first_word);
@@ -230,9 +231,6 @@ $(".different-key").text("D");
 
 //Here we separete the sequences fo each condition in order to be able to randomize theur order for each subject
 var myTrials=[];
-var myTrials_sound=[];
-var myTrials_concept=[];
-var myTrials_joint=[]
 
 
 
@@ -392,10 +390,15 @@ for (i=0; i < total_pre_concept; i++){
 
 
 for (b=1; b < 3 ; b++){
+    
+var myTrials_sound=[];
+var myTrials_concept=[];
+var myTrials_joint=[]
   
 var chunk1 = "<center><font size='5'>You are now going to start: </br></br>The testing chunk number <b>"; 
     
-var chunk2= "</b> (out of <b>4</b>)</br></br>You may take a small pause.</br></br>Please stay focused till the end of the chunck!</font></center>";
+var chunk2= "</b> (out of <b>4</b>)</br></br>The task is the same in all the chunks.</br></br>You may take a small pause before the start.</br></br>Please stay focused till the end of the chunck!</font></center>";
+    
     
 myTrials.push(myTrial={
         trial_number: 0,
@@ -475,6 +478,22 @@ for (i=0; i < total_sound; i++){
     myTrials_sound.push(myTrial);
 }
 
+    //Pause between two blocks
+myTrials_sound.push(myTrial={
+        trial_number: '',
+        trial_order:'',
+        trial_type: "pause",
+        block:'',
+        chunk:'',
+        concept_l:'',
+        concept_r:'',
+        concept_dist:'',
+        sound_l:'',
+        sound_r:'',
+        sound_dist: '',
+        conditon:''
+        });
+ /*
 //second block
 for (i=0; i < total_sound; i++){
     myTrial = {
@@ -495,6 +514,7 @@ for (i=0; i < total_sound; i++){
     myTrials_sound.push(myTrial);
 }
 
+ 
 
 //Concept condition
 myTrials_concept.push(myTrial={
@@ -648,6 +668,8 @@ for (i=0; i < total_joint; i++){
     
     myTrials_joint.push(myTrial);
 }
+
+*/
 
 //Briefing 
 
