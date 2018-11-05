@@ -289,6 +289,7 @@ myTrials.push(myTrial={
 
 //For the preTask trials, I give the correct answer in  "trial order"
 
+/*
 for (i=0; i < total_pre_joint; i++){
     myTrial = {
         trial_number: i+1,
@@ -376,6 +377,8 @@ for (i=0; i < total_pre_concept; i++){
     }
    myTrials.push(myTrial);
 }
+
+*/
 
 //the real Task
 //////////////////
