@@ -669,7 +669,9 @@ for (i=0; i < total_joint; i++){
 var conditions=[[myTrials_joint,myTrials_sound,myTrials_concept],
  [myTrials_joint,myTrials_concept,myTrials_sound],
  [myTrials_sound,myTrials_concept,myTrials_joint],
- [myTrials_concept,myTrials_sound,myTrials_joint]
+ [myTrials_sound,myTrials_joint,myTrials_concept], 
+ [myTrials_concept,myTrials_sound,myTrials_joint],
+ [myTrials_concept,myTrials_joint,myTrials_sound]
            ];
 
 var myOrder = randomElement(conditions);
