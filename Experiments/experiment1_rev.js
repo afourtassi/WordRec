@@ -458,45 +458,29 @@ myTrials_sound.push(myTrial={
 //shuffle order of exposure for two consecutive blocks
 var Trials_S_1=shuffleArray([0,1,2,3,4]);
 var Trials_S_2=shuffleArray([0,1,2,3,4]);
+var Trials_S_3=shuffleArray([0,1,2,3,4]);
+var Trials_S_4=shuffleArray([0,1,2,3,4]);
 
-var total_sound= Trials_S_1.length;
+var Trials_S = Trials_S_1.concat(Trials_S_2,
+                                 Trials_S_3,
+                                 Trials_S_4); 
+    
+var total_sound= Trials_S.length;
 
 //first block
 for (i=0; i < total_sound; i++){
     myTrial = {
         trial_number: i+1,
-        trial_order:Trials_S_1[i]+1,
+        trial_order:Trials_S[i]+1,
         trial_type: "Task",
-        block:1,
+        block:0,
         chunk:b,
         concept_l:$grey_l,
         concept_r:$grey_r,
         concept_dist:0,
-        sound_l:$sound_0[Trials_S_1[i]],
-        sound_r:$sound_1[Trials_S_1[i]],
-        sound_dist: Trials_S_1[i],
-        conditon:'sound'
-    }
-    
-    myTrials_sound.push(myTrial);
-}
-
-
-
-//second block
-for (i=0; i < total_sound; i++){
-    myTrial = {
-        trial_number: i+1,
-        trial_order:Trials_S_2[i]+1,
-        trial_type: "Task",
-        block:2,
-        chunk:b,
-        concept_l:$grey_l,
-        concept_r:$grey_r,
-        concept_dist:0,
-        sound_l:$sound_0[Trials_S_2[i]],
-        sound_r:$sound_1[Trials_S_2[i]],
-        sound_dist: Trials_S_2[i],
+        sound_l:$sound_0[Trials_S[i]],
+        sound_r:$sound_1[Trials_S[i]],
+        sound_dist: Trials_S[i],
         conditon:'sound'
     }
     
@@ -524,20 +508,26 @@ myTrials_concept.push(myTrial={
 
 var Trials_C_1=shuffleArray([0,1,2,3,4]);
 var Trials_C_2=shuffleArray([0,1,2,3,4]);
+var Trials_C_3=shuffleArray([0,1,2,3,4]);
+var Trials_C_4=shuffleArray([0,1,2,3,4]);
+    
+var Trials_C = Trials_C_1.concat(Trials_C_2,
+                                 Trials_C_3,
+                                 Trials_C_4);
 
-var total_concept= Trials_C_1.length;
+var total_concept= Trials_C.length;
 
 //first block
 for (i=0; i < total_concept; i++){
     myTrial = {
         trial_number: i+1,
-        trial_order:Trials_C_1[i]+1,
+        trial_order:Trials_C[i]+1,
         trial_type: "Task",
-        block:1,
+        block:0,
         chunk:b,
         concept_l:$concept_0,
-        concept_r:$concept_1[Trials_C_1[i]],
-        concept_dist:Trials_C_1[i],
+        concept_r:$concept_1[Trials_C[i]],
+        concept_dist:Trials_C[i],
         sound_l:$silence_l,
         sound_r:$silence_r,
         sound_dist: 0,
@@ -547,25 +537,7 @@ for (i=0; i < total_concept; i++){
     myTrials_concept.push(myTrial);
 }
 
-//second block
-for (i=0; i < total_concept; i++){
-    myTrial = {
-       trial_number: i+1,
-        trial_order:Trials_C_2[i]+1,
-        trial_type: "Task",
-        block:2,
-        chunk:b,
-        concept_l:$concept_0,
-        concept_r:$concept_1[Trials_C_2[i]],
-        concept_dist:Trials_C_2[i],
-        sound_l:$silence_l,
-        sound_r:$silence_r,
-        sound_dist: 0,
-        conditon:'concept'
-    }
-    
-    myTrials_concept.push(myTrial);
-}
+
 
 //Joint condition
 
@@ -586,21 +558,15 @@ myTrials_joint.push(myTrial={
         });
 
 
-var Trials_J_1=shuffleArray([ [0,0],[0,1],[0,2],[0,3],[0,4],
+var Trials_J=shuffleArray([ [0,0],[0,1],[0,2],[0,3],[0,4],
                               [1,0],[1,1],[1,2],[1,3],[1,4],
                               [2,0],[2,1],[2,2],[2,3],[2,4],
                               [3,0],[3,1],[3,2],[3,3],[3,4],
                               [4,0],[4,1],[4,2],[4,3],[4,4]  
                             ]);
 
-var Trials_J_2=shuffleArray([ [0,0],[0,1],[0,2],[0,3],[0,4],
-                              [1,0],[1,1],[1,2],[1,3],[1,4],
-                              [2,0],[2,1],[2,2],[2,3],[2,4],
-                              [3,0],[3,1],[3,2],[3,3],[3,4],
-                              [4,0],[4,1],[4,2],[4,3],[4,4]
-                            ]);
 
-var total_joint=Trials_J_1.length
+var total_joint=Trials_J.length
 
 //first block
 for (i=0; i < total_joint; i++){
@@ -608,55 +574,20 @@ for (i=0; i < total_joint; i++){
         trial_number: i+1,
         trial_order:0,
         trial_type: "Task",
-        block:1,
+        block:0,
         chunk:b,
         concept_l:$concept_0,
-        concept_r:$concept_1[Trials_J_1[i][0]],
-        concept_dist:Trials_J_1[i][0],
-        sound_l:$sound_0[Trials_J_1[i][1]],
-        sound_r:$sound_1[Trials_J_1[i][1]],
-        sound_dist: Trials_J_1[i][1],
+        concept_r:$concept_1[Trials_J[i][0]],
+        concept_dist:Trials_J[i][0],
+        sound_l:$sound_0[Trials_J[i][1]],
+        sound_r:$sound_1[Trials_J[i][1]],
+        sound_dist: Trials_J[i][1],
         conditon:'joint'
     }
     
     myTrials_joint.push(myTrial);
 }
 
-//Pause between two blocks
-myTrials_joint.push(myTrial={
-        trial_number: '',
-        trial_order:'',
-        trial_type: "pause",
-        block:'',
-        chunk:'',
-        concept_l:'',
-        concept_r:'',
-        concept_dist:'',
-        sound_l:'',
-        sound_r:'',
-        sound_dist: '',
-        conditon:''
-        });
-
-//second block
-for (i=0; i < total_joint; i++){
-    myTrial = {
-        trial_number: i+1,
-        trial_order:0,
-        trial_type: "Task",
-        block:2,
-        chunk:b,
-        concept_l:$concept_0,
-        concept_r:$concept_1[Trials_J_2[i][0]],
-        concept_dist:Trials_J_2[i][0],
-        sound_l:$sound_0[Trials_J_2[i][1]],
-        sound_r:$sound_1[Trials_J_2[i][1]],
-        sound_dist: Trials_J_2[i][1],
-        conditon:'joint'
-    }
-    
-    myTrials_joint.push(myTrial);
-}
 
 
 //Briefing 
