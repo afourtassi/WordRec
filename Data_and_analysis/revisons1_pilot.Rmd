@@ -36,9 +36,7 @@ library(broom)
 Data and processing
 ```{r}
 
-#Skip the pre task trials 
-#Filter subjects who had no technical problem
-#Select subjects who got more than 50% correct answers on the pre task trials
+##We will collect N=50 participants, and the data will be processed as follows
 
 exp1 <- read_delim("exp1_rev2_anonym.txt", delim = " ") %>%
   filter(type == "Task") %>%
