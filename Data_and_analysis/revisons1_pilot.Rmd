@@ -56,7 +56,7 @@ N_noProb_1 <- exp1_noProb %>%
   nrow()
 
 exp1_good <- exp1_noProb %>%
-  filter(score > 0.5)
+  filter(score >= 0.75)
 
 N_good_1 <- exp1_good %>%
   distinct(ID) %>%
