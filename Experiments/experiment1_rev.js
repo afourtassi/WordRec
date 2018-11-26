@@ -415,7 +415,7 @@ var myTrials_joint=[]
   
 var chunk1 = "<center><font size='5'>You are now going to start: </br></br>The testing chunk number <b>"; 
     
-var chunk2= "</b> (out of <b>4</b>)</font></br></br>The task and instructions are the same in all the chunks.</br></br>You may take a small pause before every chunk.</br></br>Please stay focused till the end of the chunck!</center>";
+var chunk2= "</b> (out of <b>4</b>)</font></br></br>The task and instructions are the same in all the chunks.</br></br>You may take a small pause before every chunk.</br></br>Please stay focused till the end of the chunck! </br></br> <font color='red'> There will be a 2$ bonus for the top 50% performing participants! </font></center>";
     
     
 myTrials.push(myTrial={
@@ -460,10 +460,12 @@ var Trials_S_1=shuffleArray([0,1,2,3,4]);
 var Trials_S_2=shuffleArray([0,1,2,3,4]);
 var Trials_S_3=shuffleArray([0,1,2,3,4]);
 var Trials_S_4=shuffleArray([0,1,2,3,4]);
-
+var Trials_S_5=shuffleArray([0,1,2,3,4]);
+    
 var Trials_S = Trials_S_1.concat(Trials_S_2,
                                  Trials_S_3,
-                                 Trials_S_4); 
+                                 Trials_S_4,
+                                 Trials_S_5); 
     
 var total_sound= Trials_S.length;
 
@@ -487,7 +489,6 @@ for (i=0; i < total_sound; i++){
     myTrials_sound.push(myTrial);
 }
 
- 
 
 //Concept condition
 myTrials_concept.push(myTrial={
@@ -510,10 +511,12 @@ var Trials_C_1=shuffleArray([0,1,2,3,4]);
 var Trials_C_2=shuffleArray([0,1,2,3,4]);
 var Trials_C_3=shuffleArray([0,1,2,3,4]);
 var Trials_C_4=shuffleArray([0,1,2,3,4]);
+var Trials_C_5=shuffleArray([0,1,2,3,4]);
     
 var Trials_C = Trials_C_1.concat(Trials_C_2,
                                  Trials_C_3,
-                                 Trials_C_4);
+                                 Trials_C_4,
+                                 Trials_C_5);
 
 var total_concept= Trials_C.length;
 
