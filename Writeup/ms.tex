@@ -1,5 +1,5 @@
-\documentclass[english,floatsintext,man]{apa6}
-
+\documentclass[english,,man,floatsintext]{apa6}
+\usepackage{lmodern}
 \usepackage{amssymb,amsmath}
 \usepackage{ifxetex,ifluatex}
 \usepackage{fixltx2e} % provides \textsubscript
@@ -9,136 +9,121 @@
 \else % if luatex or xelatex
   \ifxetex
     \usepackage{mathspec}
-    \usepackage{xltxtra,xunicode}
   \else
     \usepackage{fontspec}
   \fi
-  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
-  \newcommand{\euro}{€}
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
 \fi
 % use upquote if available, for straight quotes in verbatim environments
 \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 % use microtype if available
-\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\IfFileExists{microtype.sty}{%
+\usepackage{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\usepackage{hyperref}
+\hypersetup{unicode=true,
+            pdftitle={How Optimal is Word-Referent Identification Under Multimodal Uncertainty?},
+            pdfauthor={Abdellah Fourtassi~\& Michael C. Frank},
+            pdfkeywords={Language understanding; audio-visual processing; word learning; speech
+perception; computational modeling.},
+            pdfborder={0 0 0},
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[shorthands=off,main=english]{babel}
+\else
+  \usepackage{polyglossia}
+  \setmainlanguage[]{english}
+\fi
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{0}
+% Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
 
-% Table formatting
-\usepackage{longtable, booktabs}
+%%% Use protect on footnotes to avoid problems with footnotes in titles
+\let\rmarkdownfootnote\footnote%
+\def\footnote{\protect\rmarkdownfootnote}
+
+
+  \title{How Optimal is Word-Referent Identification Under Multimodal
+Uncertainty?}
+    \author{Abdellah Fourtassi\textsuperscript{1}~\& Michael C.
+Frank\textsuperscript{1}}
+    \date{}
+  
+\shorttitle{Word Identification Under Multimodal Uncertainty}
+\affiliation{
+\vspace{0.5cm}
+\textsuperscript{1} Department of Psychology, Stanford University}
+\keywords{Language understanding; audio-visual processing; word learning; speech perception; computational modeling.}
+\usepackage{csquotes}
+\usepackage{upgreek}
+\captionsetup{font=singlespacing,justification=justified}
+
+\usepackage{longtable}
 \usepackage{lscape}
-% \usepackage[counterclockwise]{rotating}   % Landscape page setup for large tables
-\usepackage{multirow}		% Table styling
-\usepackage{tabularx}		% Control Column width
-\usepackage[flushleft]{threeparttable}	% Allows for three part tables with a specified notes section
-\usepackage{threeparttablex}            % Lets threeparttable work with longtable
+\usepackage{multirow}
+\usepackage{tabularx}
+\usepackage[flushleft]{threeparttable}
+\usepackage{threeparttablex}
 
-% Create new environments so endfloat can handle them
-% \newenvironment{ltable}
-%   {\begin{landscape}\begin{center}\begin{threeparttable}}
-%   {\end{threeparttable}\end{center}\end{landscape}}
+\newenvironment{lltable}{\begin{landscape}\begin{center}\begin{ThreePartTable}}{\end{ThreePartTable}\end{center}\end{landscape}}
 
-\newenvironment{lltable}
-  {\begin{landscape}\begin{center}\begin{ThreePartTable}}
-  {\end{ThreePartTable}\end{center}\end{landscape}}
-
-
-
-
-% The following enables adjusting longtable caption width to table width
-% Solution found at http://golatex.de/longtable-mit-caption-so-breit-wie-die-tabelle-t15767.html
 \makeatletter
 \newcommand\LastLTentrywidth{1em}
 \newlength\longtablewidth
 \setlength{\longtablewidth}{1in}
-\newcommand\getlongtablewidth{%
- \begingroup
-  \ifcsname LT@\roman{LT@tables}\endcsname
-  \global\longtablewidth=0pt
-  \renewcommand\LT@entry[2]{\global\advance\longtablewidth by ##2\relax\gdef\LastLTentrywidth{##2}}%
-  \@nameuse{LT@\roman{LT@tables}}%
-  \fi
-\endgroup}
+\newcommand{\getlongtablewidth}{\begingroup \ifcsname LT@\roman{LT@tables}\endcsname \global\longtablewidth=0pt \renewcommand{\LT@entry}[2]{\global\advance\longtablewidth by ##2\relax\gdef\LastLTentrywidth{##2}}\@nameuse{LT@\roman{LT@tables}} \fi \endgroup}
 
 
-\ifxetex
-  \usepackage[setpagesize=false, % page size defined by xetex
-              unicode=false, % unicode breaks when used with xetex
-              xetex]{hyperref}
-\else
-  \usepackage[unicode=true]{hyperref}
-\fi
-\hypersetup{breaklinks=true,
-            pdfauthor={},
-            pdftitle={How Optimal is Word-Referent Identification Under Multimodal Uncertainty?},
-            colorlinks=true,
-            citecolor=blue,
-            urlcolor=blue,
-            linkcolor=black,
-            pdfborder={0 0 0}}
-\urlstyle{same}  % don't use monospace font for urls
+\usepackage{lineno}
 
-\setlength{\parindent}{0pt}
-%\setlength{\parskip}{0pt plus 0pt minus 0pt}
+\linenumbers
+\usepackage[sortcites=false,sorting=none]{biblatex}
 
-\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\authornote{ Abdellah Fourtassi
 
-\ifxetex
-  \usepackage{polyglossia}
-  \setmainlanguage{}
-\else
-  \usepackage[english]{babel}
-\fi
+Department of Psychology
 
-% Manuscript styling
-\captionsetup{font=singlespacing,justification=justified}
-\usepackage{csquotes}
-\usepackage{upgreek}
+Stanford University
 
- % Line numbering
-  \usepackage{lineno}
-  \linenumbers
+50 Serra Mall
 
+Jordan Hall, Building 420
 
-\usepackage{tikz} % Variable definition to generate author note
+Stanford, CA 94301
 
-% fix for \tightlist problem in pandoc 1.14
-\providecommand{\tightlist}{%
-  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+Correspondence concerning this article should be addressed to Abdellah
+Fourtassi, Postal address. E-mail:
+\href{mailto:afourtas@stanford.edu}{\nolinkurl{afourtas@stanford.edu}}}
 
-% Essential manuscript parts
-  \title{How Optimal is Word-Referent Identification Under Multimodal
-Uncertainty?}
-
-  \shorttitle{Word Identification Under Multimodal Uncertainty}
-
-
-  \author{Abdellah Fourtassi\textsuperscript{1}~\& Michael C. Frank\textsuperscript{1}}
-
-  % \def\affdep{{"", ""}}%
-  % \def\affcity{{"", ""}}%
-
-  \affiliation{
-    \vspace{0.5cm}
-          \textsuperscript{1} Department of Psychology, Stanford University  }
-
-  \authornote{
-    Abdellah Fourtassi
-    
-    Department of Psychology
-    
-    Stanford University
-    
-    50 Serra Mall
-    
-    Jordan Hall, Building 420
-    
-    Stanford, CA 94301
-    
-    Correspondence concerning this article should be addressed to Abdellah
-    Fourtassi, Postal address. E-mail:
-    \href{mailto:afourtas@stanford.edu}{\nolinkurl{afourtas@stanford.edu}}
-  }
-
-
-  \abstract{Identifying a spoken word in a referential context requires both the
+\abstract{
+Identifying a spoken word in a referential context requires both the
 ability to integrate multimodal input and the ability to reason under
 uncertainty. How do these tasks interact with one another? We introduce
 a paradigm that allows us to examine how adults identify words under
@@ -155,39 +140,31 @@ prefer the unperturbed modality to a greater extent than the optimal
 model does. The study provides a formal framework which helps to
 quantify how word form and word meaning interact in word recognition
 under uncertainty. Moreover it offers a first step towards a model that
-accounts for form-meaning synergies in early word learning.}
-  \keywords{Language understanding; audio-visual processing; word learning; speech
-perception; computational modeling. \\
-
-    
-  }
+accounts for form-meaning synergies in early word learning.
 
 
-
-
-  \usepackage[sortcites=false,sorting=none]{biblatex}
+}
 
 \usepackage{amsthm}
-\newtheorem{theorem}{Theorem}
-\newtheorem{lemma}{Lemma}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}{Lemma}[section]
 \theoremstyle{definition}
-\newtheorem{definition}{Definition}
-\newtheorem{corollary}{Corollary}
-\newtheorem{proposition}{Proposition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{corollary}{Corollary}[section]
+\newtheorem{proposition}{Proposition}[section]
 \theoremstyle{definition}
-\newtheorem{example}{Example}
+\newtheorem{example}{Example}[section]
 \theoremstyle{definition}
-\newtheorem{exercise}{Exercise}
+\newtheorem{exercise}{Exercise}[section]
 \theoremstyle{remark}
 \newtheorem*{remark}{Remark}
 \newtheorem*{solution}{Solution}
 \begin{document}
-
 \maketitle
 
-\setcounter{secnumdepth}{0}
-
-
+\begin{verbatim}
+## Warning: package 'bindrcpp' was built under R version 3.4.4
+\end{verbatim}
 
 \section{Introduction}\label{introduction}
 
@@ -798,18 +775,11 @@ data.
 
 Although the paradigm is within-subjects, we did not have enough
 statistical power to fit a different model for each individual
-participant.\footnote{We had a relatively high number of trials spanning
-  all possible audio-visual matchings. Getting enough data points per
-  trial per participant would have required running the online
-  experimental for a much longer time (more than an hour). This could
-  have increased significantly the dropout rate and possibly affected
-  the quality of the data collected online.} Instead, models were
-constructed with data collapsed across all participants. That being
-said, we will also analyze the distribution of individual responses. The
-fit was done with a nonlinear least squares regression using the NLS
-package in R (Bates \& Watts, 1988). We computed the values of the
-parameters, as well as their 95\% confidence intervals, through
-non-parametric bootstrap (using 10000 iterations).
+participant. Instead, models were constructed with data collapsed across
+all participants. The fit was done with a nonlinear least squares
+regression using the NLS package in R (Bates \& Watts, 1988). We
+computed the values of the parameters, as well as their 95\% confidence
+intervals, through non-parametric bootstrap (using 10000 iterations).
 
 \subsection{Results and analysis}\label{results-and-analysis}
 
@@ -907,49 +877,102 @@ Figure~\ref{fig:subOptim}.
 \includegraphics[width=\textwidth]{ms_files/figure-latex/individual-1} \caption{Distributions of individual values of the visual variance relative to the auditory variance in Experiment 1. Light color represents the real individual distribution, and dark color represents the simulated individual distribution sampled from the descriptive model.}\label{fig:individual}
 \end{figure}
 
-As we noted earlier, the model addresses the question of optimality at
-the population level. However, it is important to know how individual
-responses are distributed. In fact, one could think of an extreme case
-where optimality at the population level would be misleading. Imagine,
-for instance, that in the bimodal condition half the participants relied
+As we noted earlier, we did not have enough statistical power to fit a
+different model for each individual participant. Instead, we fit one
+model using the data aggregated across all participants. This analysis
+is informative of behavior at the population level, only. However,
+optimality at the population level could be misleading. Imagine, for
+instance, that in the bimodal condition half the participants relied
 exclusively on the visual modality, whereas the other half relied
 exclusively on the auditory modality. This case could still lead to an
 aggregate behavior which appears optimal, but this optimality would be
-spurious.
+spurious. This, in the experiemnt below, we test the cue integration
+strategy at the individual level. To this end, we increase the
+statistical power by extending the length of the experiment, allowing us
+to collect the number of datapoints necessary to fit the models for each
+participant.
 
-To examine this possibility, we consider the distribution of individual
-cross-modal weighting in the bimodal condition (i.e.,
-\(\frac{\sigma^2_{Vb}}{\sigma^2_{Ab}}\)). Using a factor of 10 as a
-cut-off, we found that 5 participants relied almost exclusively on the
-visual modality, and 12 relied almost exclusively on the auditory
-modality. The percentage of both cases was relatively small compared to
-the total number of participants (21.25\%). When these outliers were
-removed, the distribution had a rather unimodal shape
-(Figure~\ref{fig:individual}). This finding indicates that the
-population's near optimality is not spurious, but based mostly on
-genuine cue combination at the individual level.
+\section{Experiment 1 bis}\label{experiment-1-bis}
 
-As a second analysis, we asked whether the observed variance in the
-individual distribution was due to mere sampling errors or whether it
-corresponded to a real between-subject variability. We simulated
-individual responses from the posterior distribution whose parameters
-were fit to the population as a whole (i.e., the descriptive posterior).
-The resulting distribution is shown in Figure~\ref{fig:individual}. For
-ease of comparison, the simulated distribution was superimposed to the
-real distribution. We found that the real distribution had a standard
-deviation of \(sd=\) 2.24 which was larger than that of the simulated
-distribution (\(sd=\) 1.14), indicating that there was real
-between-subject variation beyond sampling errors. This finding means
-that the participants varied in terms of how they weighted modalities:
-Compared to the predictions of the population-level model, some
-participants relied more on the auditory modality, whereas others relied
-more on the visual modality.
+\subsubsection{Participants}\label{participants-1}
 
-In Experiment 1, we tested word recognition when there was multimodal
-uncertainty in terms of category membership only. In real life, however,
-tokens can undergo distortions due to noisy factors in the environment
-(e.g., car noise in the background, blurry vision in a foggy weather).
-In Experiment 2 and 3, we explore this additional level of uncertainty.
+We recruited a planned sample of N=XX participants from Amazon
+Mechanical Turk. Only participants with US IP addresses and a task
+approval rate above 99\% were allowed to participate. They were paid at
+an hourly rate of \$6/hour. Participants were excluded if they reported
+having experienced a technical problem of any sort during the online
+experiment (N=XX), or if they had less than 75\% accurate responses on
+the unambiguous training trials (N=XX). The final sample consisted of N
+= XX participants. {[}I should also add how many participants I excluded
+because their models did not converge{]}. All participants provided
+informed consent before taking the
+experiment.\footnote{The sample size and exclusion criteria were specified in the pre-registration at https://osf.io/h7mzp/.}
+
+\subsubsection{Stimuli}\label{stimuli-1}
+
+We used the same stimuli as in Experiment 1.
+
+\subsubsection{Design and Procedure}\label{design-and-procedure-1}
+
+The design and procedure were similar to Experiment 1. The only
+difference was that we increased the number of datapoints elicited per
+subject from 70 to 300.
+
+\subsection{Results and analysis}\label{results-and-analysis-1}
+
+\subsubsection{Unimodal conditions}\label{unimodal-conditions-2}
+
+We fit both population-level models to the aggregated data (as in
+Experiment 1), and individual models to data from each participant. For
+the populaton-level models, the results (shown in
+Figure~\ref{fig:unimodal}) replicated the results obtained in Experiment
+1. As for the individual-level analysis, the models showed there to be
+between-subject variability as seen in the paramters's distribution in
+Figure XX.
+
+\subsubsection{Bimodal condition and Cue combination
+models}\label{bimodal-condition-and-cue-combination-models}
+
+We first generated poupulation-level normative and descriptive models.
+As shown in Figure~\ref{fig:bimodal}, the predicted patterns of these
+models mirrored closely the results obtained in Experiment 1. In
+addition, the optimality analysis (i.e., done through comparing the
+optimal and descriptive models) shows that the fitted mean decision
+threshold was indisguisable form the optimal threshold, thus replicating
+the results of Experiment 1 (Figure~\ref{fig:bias} shows that).
+
+At the individual level, we computed the distribution of optimal
+weighing relative to the fitted (i.e., descriptive) weighing and we show
+this distribution in Figure XX. The distribution centers around the
+optimal prediction (i.e., 1) with a median value of XX {[}XX,XX{]}. The
+variance of the distribution indicates that, while most participants
+were near optimal in their cue combination, part of the participant
+tended to rely predominantly on the auditory modality and another part
+tended to rely predominantly on the visual modality.
+
+{[}Here compare to random model to see whether the resuls were due to
+measurement errors or to genuine betwee-subject variability, but isn't
+that what the CI around the median show?{]}
+
+\subsection{Discussion}\label{discussion-1}
+
+This experiment was an extension to Experiment 1. Through collecting
+larger-size data per subject, we were able to analyze the cue
+combination optimlity, not only at the population level, but also at the
+individual level. The population-level analysis replicated the results
+of Experiment 1. The individual-level analysis showed that participants'
+performance approximated a normal distribution centered around the
+optimal combination. The large variance of this distribution indicate
+that some participants tend to over-rely on the auditory modality and
+others tend to over-rely on the visual modality.
+
+In Experiment 1 and Experiment 1 bis, we tested word recognition when
+there was multimodal uncertainty in terms of category membership and
+inherent perceptual noise, only. In real life, however, both sound and
+visual tokens can undergo distortions due to noisy factors in the
+environment (e.g., car noise in the background, blurry vision in a foggy
+weather). In Experiment 2 and 3, we explore this additional level of
+uncertainty.
 
 \section{Experiment 2}\label{experiment-2}
 
@@ -965,7 +988,7 @@ non-noisy modality.
 
 \subsection{Methods}\label{methods-1}
 
-\subsubsection{Participants}\label{participants-1}
+\subsubsection{Participants}\label{participants-2}
 
 A sample of 100 participants was recruited online through Amazon
 Mechanical Turk. We used the same exclusion criteria as in Experiment 1.
@@ -982,9 +1005,9 @@ signal-to-noise ratio was - 4.4 dB. The procedure was exactly the same
 as in the previous experiment, except that the test stimuli (but not the
 target) were presented with the new noisy auditory stimuli.
 
-\subsection{Results and analysis}\label{results-and-analysis-1}
+\subsection{Results and analysis}\label{results-and-analysis-2}
 
-\subsubsection{Unimodal conditions}\label{unimodal-conditions-2}
+\subsubsection{Unimodal conditions}\label{unimodal-conditions-3}
 
 We fit a model for each modality. For the auditory modality, our
 parameter estimates were \(b_A=\) -0.18 {[}-0.05, -0.30{]} and
@@ -1012,7 +1035,7 @@ We estimated \(b=\) -0.38 {[}-0.33, -0.42{]},
 \(\sigma^2_{Ab}+\sigma^2_{Nb}=\) 9.84 {[}8.75, 11.27{]}, and
 \(\sigma^2_{Vb}=\) 5.21 {[}4.84, 5.64{]}. The fit explained 0.97\% of
 total variance. Cross-validation using half the responses to predict the
-other half yielded \(r^2 =\) 0.95.
+other half yielded \(r^2 =\) 0.96.
 
 \paragraph{Modality preferences}\label{modality-preferences}
 
@@ -1023,7 +1046,7 @@ non-parametric resampling of the data showed a decrease in the value of
 the slope in the descriptive model compared to the optimal model
 (Figure~\ref{fig:bias}, bottom).
 
-\subsection{Discussion}\label{discussion-1}
+\subsection{Discussion}\label{discussion-2}
 
 We found, similar to Experiment 1, that the population was generally
 near optimal (\(r^2 =\) 0.91), and that the optimal model explained more
@@ -1067,7 +1090,7 @@ modality lead to a preference for the visual input in Experiment 2.
 
 \subsection{Methods}\label{methods-2}
 
-\subsubsection{Participants}\label{participants-2}
+\subsubsection{Participants}\label{participants-3}
 
 A planned sample of 100 participants was recruited online through Amazon
 Mechanical Turk. We used the same exclusion criteria as in both previous
@@ -1085,13 +1108,13 @@ radius\footnote{A features that modulates the intensity of the blur.} of
 10 pixels. The experimental procedure was exactly the same as in the
 previous Experiments.
 
-\subsection{Results and analysis}\label{results-and-analysis-2}
+\subsection{Results and analysis}\label{results-and-analysis-3}
 
 \begin{figure}[!h]
 \includegraphics[width=\textwidth]{ms_files/figure-latex/bias-1} \caption{Modality preference is characterized as a deviation from the optimal decision threshold. A) The decision thresholds of both the optimal and the descriptive models (solid red and black lines, respectively). Deviation from optimality is compared to two hypothetical cases of modality preference. In these cases, deviation from  optimality is due to over-lying on the visual or the auditory input by a factor of 2 (green and blue dotted lines, respectively). B) An alternative way to represent the same data. Each point represents the value of the decision threshold's slope derived from the descriptive model relative to that of the optimal model (log-scaled). The lines represent the optimal case as well as the two hypothetical cases of modality preference. Error bars represent 95\% confidence intervals over the distribution obtained through non-parametric resampling.}\label{fig:bias}
 \end{figure}
 
-\subsubsection{Unimodal conditions}\label{unimodal-conditions-3}
+\subsubsection{Unimodal conditions}\label{unimodal-conditions-4}
 
 For the auditory modality, our parameter estimates were \(b_A=\) -0.24
 {[}-0.04, -0.42{]} and \(\sigma^2_A=\) 1.94 {[}1.61, 2.33{]}. For the
@@ -1127,7 +1150,7 @@ modality (the non-noisy modality). Indeed non-parametric resampling of
 the data showed an increase in the value of the slope in the descriptive
 model compared to the optimal model (Figure~\ref{fig:bias}).
 
-\subsection{Discussion}\label{discussion-2}
+\subsection{Discussion}\label{discussion-3}
 
 We found that the optimal model accounted for almost all the variance
 (\(r^2 =\) 0.97). However, whereas in previous experiments the optimal
@@ -1810,10 +1833,6 @@ Constraints on Cross-Situational Learning. \emph{Cognition}, \emph{145}.
 Yurovsky, D., Case, S., \& Frank, M. C. (2017). Preschoolers flexibly
 adapt to linguistic input in a noisy channel. \emph{Psychological
 Science}, \emph{28}(1), 132--140.
-
-
-
-
 
 
 \end{document}

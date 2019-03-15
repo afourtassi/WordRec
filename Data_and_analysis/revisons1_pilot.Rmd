@@ -38,7 +38,7 @@ Data and processing
 
 ##We will collect N=50 participants, and the data will be processed as follows
 
-exp1 <- read_delim("exp1_rev2_anonym.txt", delim = " ") %>%
+exp1 <- read_delim("data_rev_real1.txt", delim = " ") %>%
   filter(type == "Task") %>%
   mutate(experiment='Experiment1')
 
@@ -72,7 +72,9 @@ joint_all_exp1 <- exp1_good %>%
 
 ```
 
-Fit the aggregate  data 
+Fit the aggregate  data,
+
+This a replcition of the unimodal data with aggregated data
 ```{r}
 data_s <- sound_all_exp1 %>%
   group_by(sound_dist) %>%
@@ -145,6 +147,9 @@ ggplot(data_all,
 
 ```
 Optimal model
+
+This is a replication of the optimality analysis for aggregated data 
+
 ```{r}
 #Extract cefficieny
 
@@ -220,8 +225,6 @@ theme(aspect.ratio = 0.7,
 
 ```
 
-
-
 Human data by subject
 ```{r}
 
@@ -265,7 +268,9 @@ joint_exp1 <- exp1_good %>%
 exp_uni_data <- bind_rows(sounds_exp1, concepts_exp1)
 ```
 
-Here fit the same models for every subject
+Here fit a different model for every subject
+There are probably convergence issues with some participants, should check this later
+(I think I should take those out of the analysis)
 ```{r}
 
 #Models 
@@ -307,7 +312,10 @@ model_by_subj_j <- map(data_by_subj_j, fit_j)
 
 ```
 
-Unimodal conditions
+How to plot this? (but this visualization is not crucial)
+Plot for every condition? or just change color for every participant (maybe too much to parse)
+PLot just the means and ci?
+
 ```{r}
 ## Generate model predictions to plot with human data in the unimodal conditions
 
@@ -334,39 +342,34 @@ pred_c <- map2(model_by_subj_c, ID, model_pred_c) %>%
 ##Plot
 
 ggplot(sounds_exp1, 
-       aes(x = distance, y = mean)) + 
+       aes(x = distance, y = mean, group = distance)) + 
+  geom_boxplot()+
+  #geom_line()+
+  #geom_smooth()+
+  #geom_pointrange(aes(ymin = lower, ymax = upper), 
+  #                position = position_dodge(width = .1), size = 0.4, fatten = 2) + 
+  #geom_line(data=uniV,aes(x=xV, y=yV))+
+  geom_smooth(data=pred_s, aes(x=distance, y=prediction), col='black')+
+  xlab("Distance") +ylab("Prob. different")+
+  scale_y_continuous(limits = c(0, 1))+#theme(aspect.ratio = 0.7)+
+  theme_few()+
+  theme(aspect.ratio = 0.7) #+ facet_grid(. ~ ID)
+
+ggplot(subset(concepts_exp1, ID=="subject_1"), 
+       aes(x = distance, y = mean, col = ID)) + 
   geom_point()+
   #geom_pointrange(aes(ymin = lower, ymax = upper), 
   #                position = position_dodge(width = .1), size = 0.4, fatten = 2) + 
   #geom_line(data=uniV,aes(x=xV, y=yV))+
-  geom_line(data=pred_s, aes(x=distance, y=prediction), col='black')+
-  #geom_line(data=uni_me_s, aes(x=distance, y=prediction), col='blue')+
-  geom_line(data=pred_nl_s, aes(x=distance, y=prediction), col='red')+
+  geom_line(data=subset(pred_c,ID=="subject_1"), aes(x=distance, y=prediction), col='black')+
   xlab("Distance") +ylab("Prob. different")+
   scale_y_continuous(limits = c(0, 1))+#theme(aspect.ratio = 0.7)+
   theme_few()+
-  theme(aspect.ratio = 0.7) + facet_grid(. ~ ID)
+  theme(aspect.ratio = 0.7) #+ facet_grid(. ~ ID)
 
-ggplot(concepts_exp1, 
-       aes(x = distance, y = mean)) + 
-  geom_point()+
-  #geom_pointrange(aes(ymin = lower, ymax = upper), 
-  #                position = position_dodge(width = .1), size = 0.4, fatten = 2) + 
-  #geom_line(data=uniV,aes(x=xV, y=yV))+
-  geom_line(data=pred_c, aes(x=distance, y=prediction), col='black')+
-  #geom_line(data=uni_me_s, aes(x=distance, y=prediction), col='blue')+
-  geom_line(data=pred_nl_c, aes(x=distance, y=prediction), col='red')+
-  xlab("Distance") +ylab("Prob. different")+
-  scale_y_continuous(limits = c(0, 1))+#theme(aspect.ratio = 0.7)+
-  theme_few()+
-  theme(aspect.ratio = 0.7) + facet_grid(. ~ ID)
-
-  
-  
 
 ```
-
-Here compute the optimal combination
+Here compute the cue combination analysis for each participant
 ```{r}
 
 ##Extract coefficients from unimodal condition to build the optimal model and compare to descriptive model
@@ -467,6 +470,10 @@ correlations <- data_preds %>%
   group_by(ID, model) %>%
   summarise(cor = round(cor(Joint, pred), 2))
 
+```
+
+Plot by subject, not sure how to do it 
+```{r}
 ggplot(data_preds, 
        aes(x = pred, y = Joint)) +
            #col = factor(concept_dist), 
@@ -487,6 +494,266 @@ theme(aspect.ratio = 0.7,
   guides(shape=guide_legend(title="Auditory Distance")) 
 
 
+```
+
+```{r}
+#Make hitogram of optimality
+
+histo_all <- correlations %>%
+  group_by(ID) %>%
+  filter(cor == max(cor)) %>%
+  arrange(ID, model, cor)
+
+histo_norm <- correlations %>%
+  filter(model != 'Descriptive') %>%
+  group_by(ID) %>%
+  filter(cor == max(cor)) %>%
+  arrange(ID, model, cor)
+
+ggplot(histo_all, 
+      aes(x = model)) +
+  stat_count(width = 0.5)+
+  #geom_histogram()+
+  #scale_x_log10() +
+  theme_few() + 
+  theme(aspect.ratio = 0.7, legend.title = element_text(size=8)) +#  facet_grid(Segmentation ~ language)+
+  #scale_y_continuous(labels = scales::percent)+
+  xlab("Model") +ylab("Count")
+
+ggplot(histo_norm, 
+      aes(x = model)) +
+  stat_count(width = 0.5)+
+  #geom_histogram()+
+  #scale_x_log10() +
+  theme_few() + 
+  theme(aspect.ratio = 0.7, legend.title = element_text(size=8)) +#  facet_grid(Segmentation ~ language)+
+  #scale_y_continuous(labels = scales::percent)+
+  xlab("Model") +ylab("Count")
 
 
 ```
+Here I calculate the reliance on visual vs. auditory 
+
+```{r}
+
+weight <- data_models %>%
+  group_by(ID, vrA_u, vrV_u, vrA_j, vrV_j) %>%
+  select(ID, vrA_u, vrV_u, vrA_j, vrV_j) %>%
+  unique() %>%
+  mutate(weight_u = vrA_u/vrV_u,
+         weight_b = vrA_j/vrV_j) %>%
+  mutate(prop = weight_u/weight_b) 
+
+weight_sum <- weight %>% 
+  mutate(temp = 'temp') %>%
+  group_by(temp) %>%
+  multi_boot_standard(col = "prop")
+  
+
+weight_separate <- weight %>%
+  select(ID, weight_u, weight_b) %>%
+  gather (key, value, weight_u, weight_b)
+
+weight.boot <- boot(data=weight$prop, function(x,i) median(x[i]), R=10000)
+
+weight.ci=boot.ci(weight.boot, 
+                  conf = 0.95,
+                  type = c('perc'))
+
+
+#weights.dist <- weight$prop[weight$prop < 100 & weight$prop > 0.01]
+
+weight.median <- weight.ci$t0
+weight.median_low <- weight.ci$percent[4]
+weight.median_up <- weight.ci$percent[5]
+
+
+ggplot(data=weight, aes(x=prop, y=..count..)) +
+  geom_histogram(alpha=0.5, binwidth = 0.4)+
+  geom_vline(xintercept = weight.median, col='red')+
+  geom_vline(xintercept = weight.median_low, linetype='dashed') +
+  geom_vline(xintercept = weight.median_up, linetype='dashed') +
+  #geom_histogram(data=subset(bimod_all, data=='simulation'), fill="blue", alpha=0.2, binwidth = 0.2)+
+  #geom_histogram(binwidth = 0.2) +
+ scale_x_log10(breaks =c(0.1,1,10)) +
+   xlab("Optimal weighing relative to real weighing") +ylab("Count")+
+  theme_few()+
+  theme(aspect.ratio = 0.7) +
+  coord_cartesian(xlim=c(0.01,100))
+
+
+
+
+
+
+
+```
+I should do a test whether the variance is due to measurement noise or to geniune between-subject variability 
+I should do the writing to see how these things will be intgrated
+Here do the modality preference test (the same analysis I did for the aggragated data)
+
+HERE
+Old indivudual analysis used in version 1 of the submitteed paper
+```{r echo=FALSE, warning = FALSE}
+
+##Here we fit logistic regression to each participant
+##The logitic regression is equivalent to the descriptive model without the bias term
+##We use logistic regressions  instead of the full descriptive model becuase the latter would not converge given the small data points available for each participant
+
+
+joint_bysub_1 <- joint_all_exp1 %>%
+  group_by(ID) %>%
+  do(fit_joint_1 = glm(answer ~ concept_dist+ sound_dist, data=., family = binomial()))
+
+joint_bysub_2 <- joint_all_exp2 %>%
+  group_by(ID) %>%
+  do(fit_joint_2 = glm(answer ~ concept_dist+ sound_dist, data=., family = binomial()))
+
+joint_bysub_3 <- joint_all_exp3 %>%
+  group_by(ID) %>%
+  do(fit_joint_3 = glm(answer ~ concept_dist+ sound_dist, data=., family = binomial()))
+
+##Extract auitory and visual variances for each participant
+
+#Exp1
+bimodal_bysub_1 = tidy(joint_bysub_1, fit_joint_1) %>%
+  filter(term == 'concept_dist' | term == 'sound_dist') %>%
+  mutate(j_var = 4/(estimate)) %>%
+  select(ID, term, j_var) %>%
+  spread(term, j_var) %>%
+  rename(j_c_var = concept_dist, 
+         j_s_var = sound_dist) %>%
+  mutate(bimod = j_c_var/j_s_var)
+
+#Exp2
+bimodal_bysub_2 = tidy(joint_bysub_2, fit_joint_2) %>%
+  filter(term == 'concept_dist' | term == 'sound_dist') %>%
+  mutate(j_var = 4/(estimate)) %>%
+  select(ID, term, j_var) %>%
+  spread(term, j_var) %>%
+  rename(j_c_var = concept_dist, 
+         j_s_var = sound_dist) %>%
+  mutate(bimod = j_c_var/j_s_var)
+
+#Exp3
+bimodal_bysub_3 = tidy(joint_bysub_3, fit_joint_3) %>%
+  filter(term == 'concept_dist' | term == 'sound_dist') %>%
+  mutate(j_var = 4/(estimate)) %>%
+  select(ID, term, j_var) %>%
+  spread(term, j_var) %>%
+  rename(j_c_var = concept_dist, 
+         j_s_var = sound_dist) %>%
+  mutate(bimod = j_c_var/j_s_var)
+  
+```
+
+```{r echo=FALSE}
+#number of participants relying exlusiviely on one modality
+#cut off: a factor of 10
+
+#participants who rely on both modalities 
+bimodal_bysub_good_1 <- bimodal_bysub_1 %>%
+  filter(bimod > 0.1) %>%
+  filter(bimod < 10) 
+
+#participants who rely only on the visual modality
+#(this includes participants who relied  only on the visual modality but gave noisy responses, leading to negative values of the variance, probably due to mistaking "same" for "different", or vice versa)
+only_visual_N_1 <- bimodal_bysub_1 %>%
+  filter(abs(bimod) < 0.1) %>%
+  nrow()
+
+#participants who rely only on the auditory modality
+
+only_sound_N_1 <- bimodal_bysub_1 %>%
+  filter(abs(bimod) > 10) %>%
+  nrow()
+
+#participants who relied on both modalities 
+both_N_1 <- bimodal_bysub_1 %>%
+  filter(abs(bimod) > 0.1) %>%
+  filter(abs(bimod) < 10) %>%
+  nrow()
+
+#participants with noisy negative variances
+neg_N_1 <- bimodal_bysub_1 %>%
+  filter(bimod <  -0.1) %>%
+  filter(bimod > -10) %>%
+  nrow()
+
+#Proportion of participants who relied only on the visual modality
+exlusive_prop_1 = only_visual_N_1/(only_sound_N_1+only_visual_N_1)
+
+```
+
+
+
+```{r echo=FALSE, warning = FALSE}
+
+#Simulated individual data from descriptive model model_fit0 without a bias term (equivalent to logitic regression)
+#(but the values are very similar to descriptive model with bias the term model_fit1)
+
+simulations <- data.frame()
+
+#We aggregate simulted values for 50 times the number of participants  (in order to get a stable final distribution)
+for (i in 1:50) {
+Simul_exp1 <- joint_all_exp1 %>%
+  select(ID, sound_dist, concept_dist) %>%
+  mutate(prob = model_fit0(sound_dist, concept_dist)) %>%
+  rowwise() %>%
+  mutate(answer = rbinom(1, 1, prob=prob))
+
+joint_bysub_sim_1 <- Simul_exp1 %>%
+  group_by(ID) %>%
+  do(fit_joint_sim_1 = glm(answer ~ concept_dist+ sound_dist, data=., family = binomial()))
+
+bimodal_bysub_sim_1 = tidy(joint_bysub_sim_1, fit_joint_sim_1) %>%
+  filter(term == 'concept_dist' | term == 'sound_dist') %>%
+  mutate(j_var = 4/(estimate)) %>%
+  select(ID, term, j_var) %>%
+  spread(term, j_var) %>%
+  rename(j_c_var = concept_dist, 
+         j_s_var = sound_dist) %>%
+  mutate(bimod = j_c_var/j_s_var) %>%
+  select(ID, bimod) %>%
+  filter(bimod > 0.1) %>%
+  filter(bimod < 10) 
+
+  simulations <- bind_rows(simulations, bimodal_bysub_sim_1)
+}
+  
+
+
+#Process and combine Real and Simulated data
+
+  bimod_sim <- simulations  %>%
+    mutate(data='simulation') 
+
+  bimod_real <- bimodal_bysub_good_1  %>%
+    select(ID, bimod) %>%
+    mutate(data='real') 
+
+                    
+  bimod_all <- bind_rows(bimod_real, bimod_sim) 
+  
+ 
+#compare the sd of the distribtutions
+ sd_ind<- bimod_all %>%
+  group_by(data) %>%
+  summarise(mean= mean(bimod),
+            sd = sd(bimod))
+```
+
+```{r echo=FALSE, individual, out.width = "\\textwidth", fig.pos = "!h",fig.cap = "Distributions of individual values of the visual variance relative to the auditory variance in Experiment 1. Light color represents the real individual distribution, and dark color represents the simulated individual distribution sampled from the descriptive model."}
+
+ggplot(data=bimod_all, aes(x=bimod, y=..ncount..)) +
+  geom_histogram(data=subset(bimod_all, data=='real'), fill="red", alpha=0.2, binwidth = 0.2)+
+  geom_histogram(data=subset(bimod_all, data=='simulation'), fill="blue", alpha=0.2, binwidth = 0.2)+
+  #geom_histogram(binwidth = 0.2) +
+  scale_x_log10() +
+   xlab("Visual variance relative to sound variance") +ylab("Count")+
+  theme_few()+
+  theme(aspect.ratio = 0.7)
+ 
+
+```
+-->

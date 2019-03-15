@@ -1,0 +1,940 @@
+---
+title: "WordRec Experiment"
+author: "A. Fourtassi"
+date: "November 26, 2018"
+output:
+  html_document:
+    number_sections: yes
+    toc: yes
+---
+Libraries.
+
+```{r}
+library(papaja)
+library(kableExtra)
+library(readr)
+library(purrr)
+library(tidyr)
+library(ggplot2)
+library(cowplot)
+library(knitr)
+library(nlstools)
+library(boot)
+library(dplyr)
+library(langcog)
+library(ggthemes)
+library(broom)
+```
+
+Data and processing
+```{r}
+
+#Data from the 3 experiments 
+#############################
+exp1 <- read_delim("data_exp1_anonym.txt", delim = " ") %>%
+  filter(type == "Task") %>%
+  mutate(experiment='Experiment1')
+
+exp2 <- read_delim("data_exp2_anonym.txt", delim = " ") %>%
+  filter(type == "Task") %>%
+  mutate(experiment='Experiment2')
+
+exp3 <- read_delim("data_exp3_anonym.txt", delim = " ") %>%
+  filter(type == "Task") %>%
+  mutate(experiment='Experiment3')
+
+exp4 <- read_delim("data_rev_real1.txt", delim = " ") %>%
+  filter(type == "Task") %>%
+  mutate(experiment='Experiment4')
+
+
+```
+
+
+```{r}
+#First Exlusion criteria:
+#############################
+
+#All data
+
+N_all_1 <- exp1 %>%
+  distinct(ID) %>%
+  nrow()
+
+N_all_2 <- exp2 %>%
+  distinct(ID) %>%
+  nrow()
+
+N_all_3 <- exp3 %>%
+  distinct(ID) %>%
+  nrow()
+
+N_all_4 <- exp4 %>%
+  distinct(ID) %>%
+  nrow()
+
+#Participants who did not encounter a technical problem with the online experiment
+ 
+#Exp1
+exp1_noProb <- exp1 %>%
+  filter(problem=="No") 
+
+N_noProb_1 <- exp1_noProb %>%
+  distinct(ID) %>%
+  nrow()
+
+
+#Exp2
+exp2_noProb <- exp2 %>%
+  filter(problem=="No") 
+
+N_noProb_2 <- exp2_noProb %>%
+  distinct(ID) %>%
+  nrow()
+
+#Exp3
+exp3_noProb <- exp3 %>%
+  filter(problem=="No") 
+
+N_noProb_3 <- exp3_noProb %>%
+  distinct(ID) %>%
+  nrow()
+
+#Exp 4
+exp4_noProb <- exp4 %>%
+  filter(problem=="No") 
+
+N_noProb_4 <- exp4_noProb %>%
+  distinct(ID) %>%
+  nrow()
+
+#Participants who who did not encounter a problem AND were above 50% accuracy on obvious trials
+
+#Exp1
+exp1_good <- exp1_noProb %>%
+  filter(score > 0.5)
+
+N_good_1 <- exp1_good %>%
+  distinct(ID) %>%
+  nrow()
+
+#Exp2
+exp2_good <- exp2_noProb %>%
+  filter(score > 0.5)
+
+N_good_2 <- exp2_good %>%
+  distinct(ID) %>%
+  nrow()
+
+#Exp3
+exp3_good <- exp3_noProb %>%
+  filter(score > 0.5)
+
+N_good_3 <- exp3_good %>%
+  distinct(ID) %>%
+  nrow()
+
+#Exp 4 (The change in the selection threshold in 1 bis was re-registered: the longer experiment required stricter quality control)
+exp4_good <- exp4_noProb %>%
+  filter(score >= 0.75)
+
+N_good_4 <- exp4_good %>%
+  distinct(ID) %>%
+  nrow()
+```
+
+
+```{r}
+#Data subseting
+
+#Experiment 1
+##############
+
+exp_good <- bind_rows(exp1_good, exp2_good, exp3_good, exp4_good)
+  
+
+sounds_exp <- exp_good %>%
+  filter(condition == "sound") %>%
+  group_by(experiment, sound_dist) %>%
+  dplyr::summarise(mean = mean(answer),
+                   sd = sd(answer),
+                   n = n()) %>%
+  mutate(se = sd / sqrt(n),
+         lower = mean - qt(1 - (0.05 / 2), n - 1) * se,
+         upper = mean + qt(1 - (0.05 / 2), n - 1) * se) %>%
+  select(-sd, -n, -se,) %>%
+  mutate(Condition="Auditory") %>%
+  rename(distance = sound_dist)
+
+concepts_exp <- exp_good %>%
+  filter(condition == "concept") %>%
+  group_by(experiment, concept_dist) %>%
+  dplyr::summarise(mean = mean(answer),
+                   sd = sd(answer),
+                   n = n()) %>%
+  mutate(se = sd / sqrt(n),
+         lower = mean - qt(1 - (0.05 / 2), n - 1) * se,
+         upper = mean + qt(1 - (0.05 / 2), n - 1) * se) %>%
+  select(-sd, -n, -se,) %>%
+  mutate(Condition="Visual") %>%
+  rename(distance = concept_dist)
+
+joint_exp <- exp_good %>%
+  filter(condition == "joint") %>%
+  group_by(experiment, concept_dist, sound_dist) %>%
+  summarise(mean = mean(answer)) %>%
+  mutate(Condition="joint") 
+
+#Combine all
+exp_uni <- bind_rows(sounds_exp, concepts_exp)
+
+#feather::write_feather(exp_uni, "saved_data/exp_uni.feather")
+exp_uni <- feather::read_feather("saved_data/exp_uni.feather")
+```
+
+
+
+```{r}
+
+#Fit models to the reponses
+
+fit_s <- function(data){
+  nls(answer ~ 1/(1+(1-e)*exp((-4/vrA)*sound_dist+(8/vrA))), data=data, start = list(e=0, vrA=2))
+}
+
+fit_c <- function(data){
+  nls(answer ~ 1/(1+(1-e)*exp((-4/vrV)*concept_dist+(8/vrV))), data=data, start = list(e=0, vrV=2))
+}
+
+fit_j <- function(data){
+  nls(answer ~ 1/(1+(1-e)*exp((-4/vrA_j)*sound_dist+(-4/vrV_j)*concept_dist+(8/vrA_j)+(8/vrV_j))), data=data, start = list(e=0, vrA_j=2, vrV_j=2))
+}
+
+exp_good_s <- exp_good %>% filter(condition =='sound')
+exp_good_c <- exp_good %>% filter(condition =='concept')
+exp_good_j <- exp_good %>% filter(condition =='joint')
+
+data_by_exp_s <- split(exp_good_s, exp_good_s$experiment) 
+data_by_exp_c <- split(exp_good_c, exp_good_c$experiment)
+data_by_exp_j <- split(exp_good_j, exp_good_j$experiment)
+
+model_by_exp_s <- map(data_by_exp_s, fit_s) 
+model_by_exp_c <- map(data_by_exp_c, fit_c)
+model_by_exp_j <- map(data_by_exp_j, fit_j)
+
+
+```
+
+Extract coefficients
+```{r}
+##Extract coefficients 
+####################
+
+#Unimodal coefficients
+ co_s <- function(model, exp) {
+   data.frame(bias_s=coefficients(model)[1],
+              bias_s_low = confint2(model)[1,][1],
+              bia_s_up = confint2(model)[1,][2],
+              
+              var_s=coefficients(model)[2], 
+              var_s_low = confint2(model)[2,][1],
+              var_s_up = confint2(model)[2,][2],
+              
+              experiment=exp)
+ }
+ 
+  co_c <- function(model, exp) {
+   data.frame(bias_c=coefficients(model)[1],
+              bias_c_low = confint2(model)[1,][1],
+              bias_c_up = confint2(model)[1,][2],
+              
+              var_c= coefficients(model)[2], 
+              var_c_low = confint2(model)[2,][1],
+              var_c_up = confint2(model)[2,][2],
+              
+              experiment=exp)
+ }
+ 
+ #Bimodal coefficients
+ co_j <- function(model, exp) {
+   data.frame(bias_j=coefficients(model)[1],
+              bias_j_low = confint2(model)[1,][1],
+              bias_j_up = confint2(model)[1,][2],
+              
+              var_j_s=coefficients(model)[2],
+              var_j_s_low = confint2(model)[2,][1],
+              var_j_s_up = confint2(model)[2,][2],
+              
+              var_j_c=coefficients(model)[3],
+              var_j_c_low = confint2(model)[3,][1],
+              var_j_c_up = confint2(model)[3,][2],
+              
+              experiment=exp)
+ }
+
+ experiment <- as.list(strsplit(names(model_by_exp_s), " "))
+ 
+coef_s <- map2(model_by_exp_s, experiment, co_s) %>%
+  bind_rows() 
+ 
+coef_c <- map2(model_by_exp_c, experiment, co_c) %>%
+  bind_rows() 
+
+coef_j <- map2(model_by_exp_j, experiment, co_j) %>%
+  bind_rows() 
+
+parameters <- coef_s %>%
+  right_join(coef_c) %>%
+  right_join(coef_j) %>%
+  select(experiment, bias_s, var_s, bias_c, var_c, bias_j, var_j_s, var_j_c)
+
+feather::write_feather(parameters, "saved_data/parameters.feather")
+parameters <- feather::read_feather("saved_data/parameters.feather")
+
+
+```
+
+Parameter values (! change kable format to "pdf")
+
+```{r stats, results="asis", echo=FALSE}
+
+kable(parameters, escape = FALSE, booktabs = TRUE,
+      linesep = "", format.args = list(big.mark = ","),
+      caption = "Statistics for the dataset we used."#,
+      #col.names = c("Language",  "Nouns", "Ages", "N", "Nouns", "Ages","N")
+      ) %>%
+  add_header_above(c("", "Auditory" = 2, "Visual" = 2, "Bimodal" = 3 )) %>%
+  column_spec(1, bold = TRUE) %>%
+  kable_styling(position = "center")
+
+```
+
+Unuimodal condition
+```{r}
+##Generate predictions  
+######################
+
+x <- seq(0, 4, 0.01)
+
+pr_s <- function(model, exp){
+  y <- predict(model, list(sound_dist = x), type="response")
+  data.frame(distance=x, prediction=y, experiment=exp, Condition = "Auditory") 
+}
+
+pr_c <- function(model, exp){
+  y <- predict(model, list(concept_dist = x), type="response")
+  data.frame(distance=x, prediction=y, experiment=exp, Condition = "Visual") 
+}
+
+pred_s <- map2(model_by_exp_s, experiment, pr_s) %>%
+  bind_rows() 
+
+pred_c <- map2(model_by_exp_c, experiment, pr_c) %>%
+  bind_rows() 
+
+pred_uni <- bind_rows(pred_s, pred_c) 
+
+feather::write_feather(pred_uni, "saved_data/pred_uni.feather")
+pred_uni <- feather::read_feather("saved_data/pred_uni.feather")
+
+### plot all
+ggplot(exp_uni, 
+       aes(x = distance, y = mean)) + 
+  #geom_point()+
+  geom_pointrange(aes(ymin = lower, ymax = upper), 
+                  position = position_dodge(width = .1), size = 0.4, fatten = 2) + 
+  #geom_line(data=uniV,aes(x=xV, y=yV))+
+  geom_line(data=pred_uni, aes(x=distance, y=prediction), col='black')+
+  xlab("Distance") +ylab("Prob. different")+
+  scale_y_continuous(limits = c(0, 1))+#theme(aspect.ratio = 0.7)+
+  theme_few()+
+  theme(aspect.ratio = 0.7) + facet_grid(experiment ~ Condition)
+  #stat_function(fun = Logistic_v, colour="red"))
+
+
+```
+
+Bimodal condition: iptimality analysis
+```{r}
+
+#First define all models 
+
+# Sound only
+model_s <- function (data, x,y) {
+  vrA = unique(data$var_s)
+  b = unique(data$bias_s)
+  
+  1/(1 + (1-b)*exp((-4/vrA)*x+(8/vrA)))
+}
+
+# Visual only
+model_c <- function (data, x,y) {
+  vrV = unique(data$var_c)
+  b = unique(data$bias_c)
+  
+  1/(1 + (1-b)*exp((-4/vrV)*y+(8/vrV)))
+}
+
+# Optimal
+model_opt <- function (data, x,y) {
+  vrA = unique(data$var_s)
+  vrV = unique(data$var_c)
+  e   = unique(data$bias_j)
+  
+  1/(1 + (1-e)*exp((-4/vrA)*x+(-4/vrV)*y+(8/vrA)+(8/vrV)))
+}
+
+# Descriptive
+model_des <- function (data, x,y) {
+  vrA = unique(data$var_j_s)
+  vrV = unique(data$var_j_c)
+  e   = unique(data$bias_j)
+  
+  1/(1 + (1-e)*exp((-4/vrA)*x+(-4/vrV)*y+(8/vrA)+(8/vrV)))
+}
+
+data_and_models <- joint_exp %>%
+  left_join(coef_s) %>%
+  left_join(coef_c) %>%
+  left_join(coef_j)
+
+models <- function (data) {
+  data %>% rename(Joint = mean) %>%
+  mutate(Descriptive = model_des(data, sound_dist, concept_dist)) %>%
+  mutate(Optimal = model_opt(data, sound_dist, concept_dist)) %>%
+  mutate(Auditory = model_s(data, sound_dist, concept_dist)) %>%
+  mutate(Visual = model_c(data, sound_dist, concept_dist)) %>%
+  gather(model, pred, Visual, Auditory, Optimal, Descriptive) 
+}
+
+data_by_exp <- split(data_and_models, data_and_models$experiment) 
+
+pred_bimod <- map(data_by_exp, models) %>%
+  bind_rows()
+
+
+#Caclculate correlation
+modelCorr <- pred_bimod %>%
+  group_by(experiment, model) %>%
+  summarise(cor = round(cor(Joint, pred)^2, 2))
+
+pred_bimod <- pred_bimod %>%
+  left_join(modelCorr)
+
+feather::write_feather(pred_bimod, "saved_data/all_bimod.feather")
+pred_bimod <- feather::read_feather("saved_data/all_bimod.feather")
+```
+main plot 
+```{r}
+pred_bimod$model <- factor(pred_bimod$model, levels = c('Visual','Auditory', 'Optimal', 'Descriptive'))
+
+ggplot(pred_bimod, 
+       aes(x = pred, y = Joint, col = factor(concept_dist), 
+           shape = factor(sound_dist))) + 
+  geom_point(size =1)+
+  scale_colour_solarized()+
+ #geom_pointrange(aes(ymin = summary_ci_lower, ymax = summary_ci_upper), 
+  #                position = position_dodge(width = .1), size=0.2) + 
+
+  geom_abline(slope = 1, lty = 2) +
+  #annotate("text",aes(label=paste("R^2 ==", cor, sep="")), x=0.1, y=0.9, size=2, col='black', fontface = "bold", parse=TRUE)+
+  geom_text(aes(label=paste("r^2 ==", cor, sep="")), x=0.15, y=0.9, size=2, col='black',fontface = "bold", parse=TRUE)+
+  xlab("Predictions") +ylab("Human data")+
+  facet_grid(experiment ~ model)+
+  theme_few()+
+theme(aspect.ratio = 0.7, 
+      axis.text=element_text(size=6),
+      strip.text.y = element_text(size = 8))+
+  guides(color=guide_legend(title="Visual Distance")) +
+  guides(shape=guide_legend(title="Auditory Distance")) 
+```
+
+Bootsrap resampling of the cue combination weights 
+
+
+```{r echo=FALSE}
+
+#Bootstrap sample of parameters
+
+lmfit <- function(data, indices) {
+  
+  myd = data[indices, ]
+  
+  s_data <- myd %>%
+    filter(condition == "sound")
+
+  v_data <- myd %>%
+    filter(condition == "concept") 
+
+  j_data <- myd %>%
+    filter(condition == "joint")
+    
+  s_nl <- nls(answer ~ 1/(1+(1-e)*exp((-4/vrA)*sound_dist+(8/vrA))), data=s_data, start = list(e=0, vrA=2), nls.control(warnOnly = TRUE))
+
+ c_nl <- nls(answer ~ 1/(1+(1-e)*exp((-4/vrV)*concept_dist+(8/vrV))), data=v_data, start = list(e=0, vrV=2), nls.control(warnOnly = TRUE))
+
+ j_nl <- nls(answer ~ 1/(1+(1-e)*exp((-4/vrA_j)*sound_dist+(-4/vrV_j)*concept_dist+(8/vrA_j)+(8/vrV_j))), data=j_data, start = list(e=0, vrA_j=2, vrV_j=2), nls.control(warnOnly = TRUE))
+
+  
+  s_va <- coefficients(s_nl)["vrA"]
+  s_e <- coefficients(s_nl)["e"]
+  
+  v_va <- coefficients(c_nl)["vrV"]
+  v_e <- coefficients(c_nl)["e"]
+  
+  decision_ideal=v_va/s_va
+
+  j_va_s=coefficients(j_nl)["vrA_j"]
+  j_va_v=coefficients(j_nl)["vrV_j"]
+  j_e=coefficients(j_nl)["e"]
+  
+  decision_fit=j_va_v/j_va_s
+  
+  preference = decision_fit/decision_ideal
+  
+  MyBoot=c(s_va, s_e, v_va, v_e, j_va_s, j_va_v, j_e, decision_ideal, decision_fit, preference)
+  
+  
+  return(MyBoot) 
+
+  }
+
+```
+
+experiment 1 (too long, need to re-write this)
+```{r echo=FALSE}
+#results1 <- boot(data=exp1_good, statistic = lmfit, R = 10000)
+
+#dataSave1 <- data.frame(matrix(ncol = 5, nrow = 0))
+#data_names <- c("variable", "estimate", "lower","upper", "Experiment")
+#colnames(dataSave1) <- data_names
+
+#Auditory variance:
+#audVar=boot.ci(results1, index = 1, type = c("bca"), conf = 0.95)
+
+#v1 <- data.frame('audVar', as.numeric(audVar$t0), as.numeric(audVar$bca[4]), as.numeric(audVar$bca[5]), 'Exp1')
+#  colnames(v1) <- data_names
+
+#Auditory bias:
+#audBias=boot.ci(results1, index = 2, type = c("bca"), conf = 0.95)
+
+#v2 <- data.frame('audBias', as.numeric(audBias$t0), as.numeric(audBias$bca[4]), as.numeric(audBias$bca[5]), 'Exp1')
+#colnames(v2) <- data_names
+
+#Visual variance:
+#visVar=boot.ci(results1, index = 3, type = c("bca"), conf = 0.95)
+
+#v3 <- data.frame('visVar', as.numeric(visVar$t0), as.numeric(visVar$bca[4]), as.numeric(visVar$bca[5]), 'Exp1')
+#colnames(v3) <- data_names
+
+
+#Visual bias:
+#visBias=boot.ci(results1, index = 4, type = c("bca"), conf = 0.95)
+
+#v4 <- data.frame('visBias', as.numeric(visBias$t0), as.numeric(visBias$bca[4]), as.numeric(visBias$bca[5]), 'Exp1')
+#colnames(v4) <- data_names
+
+
+#Bimodal Auditory variance:
+#audVarBi=boot.ci(results1, index = 5, type = c("bca"), conf = 0.95)
+
+#v5 <- data.frame('audVarBi', as.numeric(audVarBi$t0), as.numeric(audVarBi$bca[4]), as.numeric(audVarBi$bca[5]), 'Exp1')
+#colnames(v5) <- data_names
+
+
+#Bimodal Visual variance:
+#visVarBi=boot.ci(results1, index = 6, type = c("bca"), conf = 0.95)
+
+#v6 <- data.frame('visVarBi', as.numeric(visVarBi$t0), as.numeric(visVarBi$bca[4]), as.numeric(visVarBi$bca[5]), 'Exp1')
+#colnames(v6) <- data_names
+
+#Bimodal bias:
+#BiasBi=boot.ci(results1, index = 7, type = c("bca"), conf = 0.95)
+
+#v7 <- data.frame('BiasBi', as.numeric(BiasBi$t0), as.numeric(BiasBi$bca[4]), as.numeric(BiasBi$bca[5]), 'Exp1')
+#colnames(v7) <- data_names
+
+#Ideal modality wieghing
+#prefIdeal=boot.ci(results1, index = 8, type = c("bca"), conf = 0.95)
+
+#v8 <- data.frame('prefIdeal', as.numeric(prefIdeal$t0), as.numeric(prefIdeal$bca[4]), as.numeric(prefIdeal$bca[5]), 'Exp1')
+#colnames(v8) <- data_names
+
+
+#fit modality wieghing
+#prefFit=boot.ci(results1, index = 9, type = c("bca"), conf = 0.95)
+
+#v9 <- data.frame('prefFit', as.numeric(prefFit$t0), as.numeric(prefFit$bca[4]), as.numeric(prefFit$bca[5]), 'Exp1')
+#colnames(v9) <- data_names
+
+
+#Modality bias 
+#bias=boot.ci(results1, index = 10, type = c("bca"), conf = 0.95)
+
+#v10 <- data.frame('bias', as.numeric(bias$t0), as.numeric(bias$bca[4]), as.numeric(bias$bca[5]), 'Exp1')
+#colnames(v10) <- data_names
+
+
+
+#dataSave1 <- bind_rows(dataSave1, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10)
+
+#feather::write_feather(dataSave1, "dataExp1.feather")
+
+dataSave1 <- feather::read_feather("dataExp1.feather")
+
+###### Extract values from saved data 
+##To reproduce the values, please uncomment the previous code following the function "lmfit"
+
+prefIdeal_val_1=dataSave1$estimate[which(dataSave1$variable == "prefIdeal")]
+prefIdeal_ci1_1=dataSave1$lower[which(dataSave1$variable == "prefIdeal")]
+prefIdeal_ci2_1=dataSave1$upper[which(dataSave1$variable == "prefIdeal")]
+
+prefFit_val_1=dataSave1$estimate[which(dataSave1$variable == "prefFit")]
+prefFit_ci1_1=dataSave1$lower[which(dataSave1$variable == "prefFit")]
+prefFit_ci2_1=dataSave1$upper[which(dataSave1$variable == "prefFit")]
+
+bias_val_1=dataSave1$estimate[which(dataSave1$variable == "bias")]
+bias_ci1_1=dataSave1$lower[which(dataSave1$variable == "bias")]
+bias_ci2_1=dataSave1$upper[which(dataSave1$variable == "bias")]
+
+#With exactly the same procedure, we get the paramters for experiment 2 and 3 (experiment 4 has its own, separate analysis)
+dataSave2 <- feather::read_feather("dataExp2.feather")
+dataSave3 <- feather::read_feather("dataExp3.feather")
+
+
+#Exp2
+prefIdeal_val_2=dataSave2$estimate[which(dataSave2$variable == "prefIdeal")]
+prefIdeal_ci1_2=dataSave2$lower[which(dataSave2$variable == "prefIdeal")]
+prefIdeal_ci2_2=dataSave2$upper[which(dataSave2$variable == "prefIdeal")]
+
+prefFit_val_2=dataSave2$estimate[which(dataSave2$variable == "prefFit")]
+prefFit_ci1_2=dataSave2$lower[which(dataSave2$variable == "prefFit")]
+prefFit_ci2_2=dataSave2$upper[which(dataSave2$variable == "prefFit")]
+
+bias_val_2=dataSave2$estimate[which(dataSave2$variable == "bias")]
+bias_ci1_2=dataSave2$lower[which(dataSave2$variable == "bias")]
+bias_ci2_2=dataSave2$upper[which(dataSave2$variable == "bias")]
+
+#Exp3
+prefIdeal_val_3=dataSave3$estimate[which(dataSave3$variable == "prefIdeal")]
+prefIdeal_ci1_3=dataSave3$lower[which(dataSave3$variable == "prefIdeal")]
+prefIdeal_ci2_3=dataSave3$upper[which(dataSave3$variable == "prefIdeal")]
+
+prefFit_val_3=dataSave3$estimate[which(dataSave3$variable == "prefFit")]
+prefFit_ci1_3=dataSave3$lower[which(dataSave3$variable == "prefFit")]
+prefFit_ci2_3=dataSave3$upper[which(dataSave3$variable == "prefFit")]
+
+bias_val_3=dataSave3$estimate[which(dataSave3$variable == "bias")]
+bias_ci1_3=dataSave3$lower[which(dataSave3$variable == "bias")]
+bias_ci2_3=dataSave3$upper[which(dataSave3$variable == "bias")]
+
+
+```
+
+Modality preference
+
+```{r echo=FALSE, warning = FALSE}
+
+#Modality preference in an audio-vidual space
+
+# Decision threshold
+classif = function (x, A) {
+    2*A+2-A*x
+}
+
+pref_data <- data.frame(matrix(ncol = 7, nrow = 0))
+names <- c("Auditory", "Visual", "Optimal", "Auditory bias", "Visual bias", "Fit", "Experiment")
+colnames(pref_data) <- names
+
+x=seq(-1,5,0.02)
+
+pref_exp1 <- data.frame(x, x, 
+                        classif(x, prefIdeal_val_1),
+                        classif(x, 2*prefIdeal_val_1),
+                        classif(x, 0.5*prefIdeal_val_1),
+                        classif(x, prefFit_val_1),
+                        'Exp1')
+colnames(pref_exp1) <- names
+
+pref_exp2 <- data.frame(x, x, 
+                        classif(x, prefIdeal_val_2),
+                        classif(x, 2*prefIdeal_val_2),
+                        classif(x, 0.5*prefIdeal_val_2),
+                        classif(x, prefFit_val_2),
+                        'Exp2')
+colnames(pref_exp2) <- names
+
+pref_exp3 <- data.frame(x, x, 
+                        classif(x, prefIdeal_val_3),
+                        classif(x, 2*prefIdeal_val_3),
+                        classif(x, 0.5*prefIdeal_val_3),
+                        classif(x, prefFit_val_3),
+                        'Exp3')
+colnames(pref_exp3) <- names
+
+pref_data <- bind_rows(pref_data, pref_exp1, pref_exp2, pref_exp3) %>%
+  gather(model, value, Optimal:Fit)
+
+pref_data$model <- factor(pref_data$model, levels = c("Optimal", "Fit","Auditory bias", "Visual bias"))
+
+feather::write_feather(pref_data, "pref_data.feather")
+pref_data <- feather::read_feather("pref_data.feather")
+  
+pref_thres <- ggplot(pref_data, aes(x=Auditory, y=value, col = factor(model))) +
+  geom_line(aes(linetype = factor(model) )) +
+  facet_grid(.~Experiment)+
+  scale_colour_manual(values = c("Optimal" = "red", "Auditory bias" = "blue", "Visual bias" = "green", "Fit" = "black"))+
+  scale_linetype_manual(values = c("Optimal" = "solid", "Auditory bias" = "dashed", "Visual bias" = "dashed", "Fit" = "solid"))+
+  xlab("Auditory") +ylab("Visual") +
+  scale_x_continuous(limits = c(1.7, 2.3))+
+  scale_y_continuous(limits = c(1.7, 2.3))+
+  theme_few()+
+  theme(aspect.ratio = 1)+
+  theme(legend.title = element_blank())
+
+```
+
+
+```{r echo=FALSE, warning = FALSE}
+
+
+#Modality bias
+preference = c(bias_val_1, bias_val_2, bias_val_3)
+experiment =c("Exp 1 \n", "Exp 2", "Exp 3")
+ci_low=c(bias_ci1_1, bias_ci1_2, bias_ci1_3)
+ci_up=c(bias_ci2_1, bias_ci2_2, bias_ci2_3)
+
+pref = data.frame(preference, ci_low, ci_up)
+
+bias <- ggplot(pref, 
+       aes(x = experiment, y=preference)) +
+  geom_hline(yintercept = 1, linetype='solid', color="red", size=1)+
+  geom_hline(yintercept = 0.5, linetype=2, color="green")+
+  geom_hline(yintercept = 2, linetype=2, color="blue")+
+  geom_point(size=3)+
+  geom_errorbar(aes(ymin = ci_low, ymax = ci_up), 
+                  width = 0.1,
+                  position = position_dodge(width = 0.1))+
+  theme_few()+
+  theme(aspect.ratio = 1, axis.text=element_text(size=10))+
+  xlab("") +ylab("Relative weighting")+
+  scale_y_log10(breaks=c(0.5,1,2),labels=c("Visual bias","Optimal","Auditory bias"))
+  
+  #coord_cartesian(ylim=c(0, 2.5))
+
+```
+
+```{r bias, echo=FALSE, warning = FALSE, out.width = "\\textwidth", fig.pos = "!h", fig.cap = "Modality preference is characterized as a deviation from the optimal decision threshold. A) The decision thresholds of both the optimal and the descriptive models (solid red and black lines, respectively). Deviation from optimality is compared to two hypothetical cases of modality preference. In these cases, deviation from  optimality is due to over-lying on the visual or the auditory input by a factor of 2 (green and blue dotted lines, respectively). B) An alternative way to represent the same data. Each point represents the value of the decision threshold's slope derived from the descriptive model relative to that of the optimal model (log-scaled). The lines represent the optimal case as well as the two hypothetical cases of modality preference. Error bars represent 95\\% confidence intervals over the distribution obtained through non-parametric resampling."}
+
+legend <- get_legend(pref_thres)
+plot_noLegend <- plot_grid(pref_thres + theme(legend.position="none"), NULL, bias, labels = c("A", "", "B"), ncol = 1, align = "v", rel_heights = c(1.1, 0.1, 1.3))
+plot_grid(plot_noLegend, legend, rel_widths = c(2, .5))
+
+```
+
+Individual analysis (Experiment 4)
+
+```{r}
+#Here anlysese of individual models
+
+#Models 
+
+#Sound Unimodal
+fit_s <- function(data) {
+  nls(answer ~ 1/(1+(1-e)*exp((-4/vrA)*sound_dist+(8/vrA))), 
+                 data=data,
+                 start = list(e=0, vrA=1),
+                 nls.control(warnOnly = TRUE)) 
+}
+#Concept Unimodal
+fit_c <- function(data) {
+  nls(answer ~ 1/(1+(1-e)*exp((-4/vrV)*concept_dist+(8/vrV))), 
+                 data=data,
+                 start = list(e=0, vrV=1),
+                 nls.control(warnOnly = TRUE)) 
+}
+
+#Joint sound-concept
+fit_j <- function(data) {
+  nls(answer ~1/(1+(1-e)*exp((-4/vrA_j)*sound_dist+(-4/vrV_j)*concept_dist+(8/vrA_j)+(8/vrV_j))), 
+                 data=data,
+                 start = list(e=0, vrA_j=1, vrV_j=1),
+                 nls.control(warnOnly = TRUE)) 
+}
+
+##Fit the models for each subject
+
+exp4_good_s <- exp4_good %>% filter(condition =='sound')
+exp4_good_c <- exp4_good %>% filter(condition =='concept')
+exp4_good_j <- exp4_good %>% filter(condition =='joint')
+
+#Split data by subject 
+data_by_subj_s <- split(exp4_good_s, exp4_good_s$ID) 
+data_by_subj_c <- split(exp4_good_c, exp4_good_c$ID)
+data_by_subj_j <- split(exp4_good_j, exp4_good_j$ID)
+
+#.. and fit
+model_by_subj_s <- map(data_by_subj_s, fit_s) 
+model_by_subj_c <- map(data_by_subj_c, fit_c)
+model_by_subj_j <- map(data_by_subj_j, fit_j)
+
+```
+
+
+```{r}
+
+##Extract coefficients 
+
+#Unimodal coefficients
+ co_uni <- function(model, ID) {
+   data.frame(bias=coefficients(model)[1], 
+              variance=coefficients(model)[2], 
+              ID=ID)
+ }
+ 
+ #Bimodal coefficients
+ co_bim <- function(model, ID) {
+   data.frame(bias=coefficients(model)[1],
+              var_s=coefficients(model)[2],
+              var_c=coefficients(model)[3],
+              ID=ID)
+ }
+
+ID <- as.list(strsplit(names(model_by_subj_s), " "))
+ 
+#Here extract ceofficients to build optimal model later
+coef_s <- map2(model_by_subj_s, ID, co_uni) %>%
+  bind_rows() %>%
+  rename(vrA_u= variance,
+         bA_u =  bias)
+
+coef_c <- map2(model_by_subj_c, ID, co_uni) %>%
+  bind_rows() %>%
+  rename(vrV_u= variance,
+         bV_u =  bias)
+
+coef_j <- map2(model_by_subj_j, ID, co_bim) %>%
+  bind_rows() %>%
+  rename(vrA_j = var_s,
+         vrV_j = var_c,  
+         b =  bias)
+
+```
+
+```{r}
+## Below are functions that take sound and concept distances and return the predicted joint value in each model
+
+# Sound only
+model_s <- function (data, x,y) {
+  vrA = unique(data$vrA_u)
+  b = unique(data$bA_u)
+  
+  1/(1 + (1-b)*exp((-4/vrA)*x+(8/vrA)))
+}
+
+# Visual only
+model_c <- function (data, x,y) {
+  vrV = unique(data$vrV_u)
+  b = unique(data$bV_u)
+  
+  1/(1 + (1-b)*exp((-4/vrV)*y+(8/vrV)))
+}
+
+# Optimal
+model_opt <- function (data, x,y) {
+  vrA = unique(data$vrA_u)
+  vrV = unique(data$vrV_u)
+  e   = unique(data$b)
+  
+  1/(1 + (1-e)*exp((-4/vrA)*x+(-4/vrV)*y+(8/vrA)+(8/vrV)))
+}
+
+# Descriptive
+model_des <- function (data, x,y) {
+  vrA = unique(data$vrA_j)
+  vrV = unique(data$vrV_j)
+  e   = unique(data$b)
+  
+  1/(1 + (1-e)*exp((-4/vrA)*x+(-4/vrV)*y+(8/vrA)+(8/vrV)))
+}
+
+
+data_models <- exp_good %>%
+  filter(condition == "joint",
+         experiment == "Experiment4") %>%
+  group_by(ID, concept_dist, sound_dist) %>%
+  summarise(mean = mean(answer)) %>%
+  left_join(coef_s) %>%
+  left_join(coef_c) %>%
+  left_join(coef_j)
+  
+
+models <- function (subject_data) {
+  subject_data %>% rename(Joint = mean) %>%
+  mutate(Descriptive = model_des(subject_data, sound_dist, concept_dist)) %>%
+  mutate(Optimal = model_opt(subject_data, sound_dist, concept_dist)) %>%
+  mutate(Auditory = model_s(subject_data, sound_dist, concept_dist)) %>%
+  mutate(Visual = model_c(subject_data, sound_dist, concept_dist)) %>%
+  gather(model, pred, Visual, Auditory, Optimal, Descriptive) 
+}
+
+data_by_subj <- split(data_models, data_models$ID) 
+
+data_preds <- map(data_by_subj, models) %>%
+  bind_rows()
+
+data_preds$model <- factor(data_preds$model, levels = c('Visual','Auditory', 'Optimal', 'Descriptive'))
+
+correlations <- data_preds %>%
+  group_by(ID, model) %>%
+  summarise(cor = round(cor(Joint, pred)^2, 2))
+
+```
+Individual distribution
+
+```{r}
+weight <- data_models %>%
+  group_by(ID, vrA_u, vrV_u, vrA_j, vrV_j) %>%
+  select(ID, vrA_u, vrV_u, vrA_j, vrV_j) %>%
+  unique() %>%
+  mutate(weight_u = vrA_u/vrV_u,
+         weight_b = vrA_j/vrV_j) %>%
+  mutate(prop = weight_u/weight_b) 
+
+feather::write_feather(weight, "ind_weights.feather")
+weight <- feather::read_feather("ind_weights.feather")
+
+
+weight_separate <- weight %>%
+  select(ID, weight_u, weight_b) %>%
+  gather (key, value, weight_u, weight_b)
+
+weight.boot <- boot(data=weight$prop, function(x,i) median(x[i]), R=10000)
+
+weight.ci=boot.ci(weight.boot, 
+                  conf = 0.95,
+                  type = c('perc'))
+
+
+#weights.dist <- weight$prop[weight$prop < 100 & weight$prop > 0.01]
+
+weight.median <- weight.ci$t0
+weight.median_low <- weight.ci$percent[4]
+weight.median_up <- weight.ci$percent[5]
+
+ggplot(data=weight, aes(x=prop, y=..count..)) +
+  geom_histogram(alpha=0.5, binwidth = 0.4)+
+  geom_vline(xintercept = weight.median, col='red')+
+  geom_vline(xintercept = weight.median_low, linetype='dashed') +
+  geom_vline(xintercept = weight.median_up, linetype='dashed') +
+  #geom_histogram(data=subset(bimod_all, data=='simulation'), fill="blue", alpha=0.2, binwidth = 0.2)+
+  #geom_histogram(binwidth = 0.2) +
+ scale_x_log10(breaks =c(0.1,1,10)) +
+   xlab("Optimal weighing relative to real weighing") +ylab("Count")+
+  theme_few()+
+  theme(aspect.ratio = 0.7) +
+  coord_cartesian(xlim=c(0.01,100))
+
+
+```
+
