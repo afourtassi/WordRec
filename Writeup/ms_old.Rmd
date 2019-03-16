@@ -360,20 +360,17 @@ with $\beta_a=\frac{\mu_{A_1}-\mu_{A_2}}{\sigma^2_{A}}$ and  $\beta_{a0}=\frac{\
 #### Bimodal condition
 In this condition, only the descriptive model is fit to the data, using the expression of the posterior (Equation 1). Since the values of the means are fixed, we have 3 free parameters: the variances for the visual and the auditory modalities, respectively, and $b$, the response bias.  The visual and auditory baselines as well as the optimal model are not fit to the bimodal data, but their predictions are tested against these bimodal data. All these normative models use the variances derived from the unimodal data and the bias term derived from the fit to bimodal data. 
 
-Although the paradigm is within-subjects, we did not have enough statistical power to fit a different model for each individual participant (but see Experiment 4). Instead, models were constructed with data collapsed across all participants. The fit was done with a nonlinear least squares regression using the NLS package in R [@bates88]. We computed the values of the parameters, as well as their 95% confidence intervals, through non-parametric bootstrap (using 10000 iterations).
+Although the paradigm is within-subjects, we did not have enough statistical power to fit a different model for each individual participant. Instead, models were constructed with data collapsed across all participants. The fit was done with a nonlinear least squares regression using the NLS package in R [@bates88]. We computed the values of the parameters, as well as their 95% confidence intervals, through non-parametric bootstrap (using 10000 iterations).
 
-```{r param, results="asis", echo=FALSE}
+
+```{r stats, results="asis", echo=FALSE}
 
 parameters <- feather::read_feather("../Data_and_analysis/saved_data/parameters.feather") 
-
-parameters[,-1] <-round(parameters[,-1],2)
-
-names(parameters) <- c("Experiment",  "b\\textsubscript{A}", "Var\\textsubscript{A}", "b\\textsubscript{V}", "Var\\textsubscript{V}", "b\\textsubscript{b}","Var\\textsubscript{Ab}","Var\\textsubscript{Vb}")
 
 kable(parameters, format = "latex", escape = FALSE, booktabs = TRUE,
       linesep = "", format.args = list(big.mark = ","),
       caption = "Statistics for the dataset we used."#,
-      #col.names = c("Experiment",  "b~A~", expression("*o['T']*"), "b~V~", "sigma~V~", "b~b~","sigma~Ab~","sigma~Vb~")
+      #col.names = c("Language",  "Nouns", "Ages", "N", "Nouns", "Ages","N")
       ) %>%
   add_header_above(c("", "Auditory" = 2, "Visual" = 2, "Bimodal" = 3 )) %>%
   column_spec(1, bold = TRUE) %>%
@@ -386,7 +383,7 @@ kable(parameters, format = "latex", escape = FALSE, booktabs = TRUE,
 
 ### Unimodal conditions
 
-Average categorization judgments and best fits are shown in Figure \@ref(fig:unimodal). The categorization function of the auditory condition was slightly steeper than that of the visual condition, meaning that participants perceived the sound tokens slightly more categorically and with higher certainty than they did with the visual tokens.  The unimodal models' estimates are shown in Table \@ref(tab:param).
+Average categorization judgments and best fits are shown in Figure\ \@ref(fig:unimodal). The categorization function of the auditory condition was slightly steeper than that of the visual condition, meaning that participants perceived the sound tokens slightly more categorically and with higher certainty than they did with the visual tokens.  For the auditory modality, we obtained the following values: $b_A=$ `r audBias_val`  [`r audBias_ci2`, `r audBias_ci1`] and $\sigma^2_A=$ `r audVar_val` [`r audVar_ci1`, `r audVar_ci2`]. For the visual modality, we obtained $b_V=$ `r visBias_val` [`r visBias_ci2`, `r visBias_ci1`] and $\sigma^2_V=$ `r visVar_val` [`r visVar_ci1`, `r visVar_ci2`].
 
 ```{r unimodal, out.width = "\\textwidth", fig.pos = "!h", fig.cap = "Human responses in the unimodal conditions across the three experiments. Points represent the proportion of `different' to `same' responses in the auditory-only condition (left), and visual-only condition (right). Error bars are 95\\% confidence intervals. Solid lines represent best unimodal posterior fits."}
 
@@ -412,15 +409,96 @@ ggplot(exp_uni,
 
 ### Bimodal condition
 
+
+```{r}
+
+#Here we conduct cross-validation for the descriptive model, since this model is trained and tested on the same data
+
+#As the numbers show, the predictions on the held-out subset is almost as accurate as the predictions on the training set.  Over-fitting is generally not a problem with such simple models)
+
+#We conduct a cross-validation where half the responses are used predict the other half
+
+#The function "crossValid", below, takes the data to be cross-validated and return a score (coefficient of determination)
+
+crossValid <- function(data) {
+
+n <- nrow(data)
+frac <- 0.5
+ix <- sample(n, frac * n) # indexes of in sample rows
+
+fo <- answer ~ 1/(1+(1-e)*exp((-4/vrA_j)*sound_dist+(-4/vrV_j)*concept_dist+(8/vrA_j)+(8/vrV_j)))
+
+fm <- nls(fo, data, start = list(e=0, vrA_j=2, vrV_j=2), subset = ix) # fit the model to a subset (here half) the responses 
+
+#Extract the values of the parameter
+
+data.test <- data[-ix, ] # out of sample data
+data.train <- data[ix, ]
+
+
+data.train.means <- data.train %>%
+  group_by(concept_dist, sound_dist) %>%
+  summarise(mean = mean(answer)) 
+
+data.test.means <- data.test %>%
+  group_by(concept_dist, sound_dist) %>%
+  summarise(mean = mean(answer)) 
+
+pred.train <-  predict(fm, new = data.train.means)
+pred.test <- predict(fm, new = data.test.means)
+
+cor.train <- cor(data.train.means$mean, pred.train)^2 
+cor.test <- cor(data.test.means$mean, pred.test)^2
+
+return(cor.test)
+
+}
+
+#Average across N partions, to render the pdf I am using a small value, but higher values can be used for the final version
+N_partitions = 10
+
+crossValid_exp1 <- replicate(N_partitions, {
+  crossValid(joint_all_exp1)
+  })
+
+
+CV_exp1_mean = mean(crossValid_exp1)
+error <- qt(0.975,df=length(crossValid_exp1)-1)*sd(crossValid_exp1)/sqrt(length(crossValid_exp1))
+CV_exp1_lower = CV_exp1_mean - error
+CV_exp1_upper = CV_exp1_mean + error
+
+crossValid_exp2 <- replicate(N_partitions, {
+  crossValid(joint_all_exp2)
+  })
+
+CV_exp2_mean = mean(crossValid_exp2)
+error <- qt(0.975,df=length(crossValid_exp2)-1)*sd(crossValid_exp2)/sqrt(length(crossValid_exp2))
+CV_exp2_lower = CV_exp2_mean - error
+CV_exp2_upper = CV_exp2_mean + error
+
+
+crossValid_exp3 <- replicate(N_partitions, {
+  crossValid(joint_all_exp3)
+  })
+
+CV_exp3_mean = mean(crossValid_exp3)
+error <- qt(0.975,df=length(crossValid_exp3)-1)*sd(crossValid_exp3)/sqrt(length(crossValid_exp3))
+CV_exp3_lower = CV_exp3_mean - error
+CV_exp3_upper = CV_exp3_mean + error
+
+
+```
+
+
 #### Normative models
-Figure\ \@ref(fig:bimodal) compares the predictions of the normative models against human responses. Remember that the normative models use variance estimates from the unimodal conditions (where people see input from only one modality) to predict data in the bimodal condition (where people see input from both modalities). Figure \@ref(fig:bimodal) shows the models' predictions comapred to human data. 
+Figure\ \@ref(fig:bimodal) compares the predictions of the normative models against human responses. Remember that the normative models use variance estimates from the unimodal conditions (where people see input from only one modality) to predict data in the bimodal condition (where people see input from both modalities). Each point represents data form a particular audio-visual matching (e.g., the visual token $v$ whose distance from the target $v_t$ is $|v-v_t|=3$, matched with the auditory token $a$ whose distance from the target $a_t$ is $|a-a_t|=2$). The visual, auditory and optimal model explained, respectively, `r 100*R2_visual_1`%, `r 100*R2_auditory_1`%, and `r 100*R2_optimal_1`% of total variance in mean responses.
 
 #### Descriptive model
-In the descriptive model, all parameters are fit to human responses in the bimodal condition. The prediction of this model are shown in Figure \@ref(fig:bimodal). Note that the descriptive model explained almost all the variance, which makes it a reasonble proxy for human real performance in the bimodal condition. Thus, to determine the extent to which human data deviated from optimality, we comapred the descriptive and optimal models follwoing the procedure outlined above (section XX).
+In the descriptive model, all parameters are fit to human responses in the bimodal condition. We found $b=$ `r BiasBi_val` [`r BiasBi_ci2`, `r BiasBi_ci1`], $\sigma^2_{Ab}=$ `r audVarBi_val` [`r audVarBi_ci1`, `r audVarBi_ci2`] and $\sigma^2_{Vb}=$ `r visVarBi_val` [`r visVarBi_ci1`, `r visVarBi_ci2`]. Note that the variance of both the auditory and visual modalities increased compared to the unimodal conditions. 
 
-<!--\noindent The descriptive model explained almost all the variance of total variance.  However, unlike the normative models, the descriptive model was fit to the same bomodal data. Thus, there is a risk that this high correlation is due to overfitting. To examine this possibility, we cross-validated the model using half the responses to predict the other half (averaging across X random partitions). The predictive power of the model remained very high (XX). -->
+\noindent The descriptive model explained `r 100*R2_descriptive_1`% of total variance.  However, since the descriptive model was fit to the same data, there is a risk that this high correlation is due to overfitting. To examine this possibility, we cross-validated the model using half the responses to predict the other half (averaging across `r N_partitions` random partitions). The predictive power of the model remained very high ($r^2$=`r CV_exp1_mean`).
 
-```{r bimodal, out.width = "\\textwidth", fig.pos = "!h", fig.cap = "Human responses vs. Models' predictions in the bimodal condition across the three experiments. Each point represents data form a particular audio-visual matching (corresponding to an instance from the set of 5x5 possible matchings in the audio-visual space). Shape represents auditory distance from the target, and color represents visual distance from the target. Thus, each point is characterized by both  shape and color."}
+```{r bimodal, out.width = "\\textwidth", fig.pos = "!h", fig.cap = "Human responses vs. Models' predictions in the bimodal condition across the three experiments. Each point represents data form a particular audio-visual matching. Shape represents auditory distance from the target, and color represents visual distance from the target. Thus, each point is characterized by both  shape and color."}
 
 pred_bimod <- feather::read_feather("../Data_and_analysis/saved_data/all_bimod.feather")
 
@@ -448,13 +526,90 @@ theme(aspect.ratio = 0.7,
 
 ```
 
-### Analysis of optimality
-We analyzed if the cue combination was performed in an optimal way, or if there was a systematic preference for one modality when making decisions in the bimodal condition. As explained above (\@ref(fig:subOptim)), modality preference can be characterized formally as a deviation from the decision threshold predicted by the optimal model. The results in Figure \@ref(fig:bias) (top) show both the decision threshold derived from the descriptive model (in black) and the decision threshold predicted by the optimal model (in red). The deviation from optimality is compared to two hypothetical cases of modality preference (dotted lines). We found that the descriptive and optimal decision thresholds were almost identical. Indeed, non-parametric resampling of the data showed no evidence of a deviation from the optimal prediction (Figure\ \@ref(fig:bias), bottom).
+#### Cue combination and Modality preference
+We next analyzed if cue combination was performed in an optimal way, or if there was a systematic preference for one modality when making decisions in the bimodal condition.
+As explained above, modality preference can be characterized formally as a deviation from the decision threshold predicted by the optimal model. Figure\ \@ref(fig:bias) (top) shows both the decision threshold derived from the descriptive model (in black) and the decision threshold predicted by the optimal model (in red). The deviation from optimality is compared to two hypothetical cases of modality preference (dotted lines). We found that the descriptive and optimal decision thresholds were almost identical. Indeed, non-parametric resampling of the data showed no evidence of a deviation from the optimal prediction (Figure\ \@ref(fig:bias), bottom).
+
 
 ## Discussion
-We found that the optimal model explained largely more variance than what can be explained with the auditory or the visual models alone. in addition, the high correlation with the mean human data suggests that the population was, overall, near-optimal. However, we see in Figure \@ref(fig:bimodal) that the responses deviated systematically from the optimal prediction in that they were slightly pulled toward chance (i.e., the probability 0.5). This fact is due to the increase in the value of the variance associated with each modality (as can be noted from Table \@ref(tab:param)). Note however that, despite this increase in randomness, our analysis of modality preference showed that the relative values of these variances were not different (Figure\ \@ref(fig:bias)), meaning that there was no evidence for a modality preference. Thus, 1) There was a simultaneous increase in the values of the auditory and visual variances in the bimodal condition compared to the unimodal condition, meaning that the bimodal input lead to an increase in response randomness, and 2) this increased randomness did not affect the relative weighting of both modalities, i.e., the participants was weighting modalities according to the relative reliability predicted by the optimal model. This situation corresponds to the first case of sub-optimality described in Figure\ \@ref(fig:subOptim). 
+Overall, we found that the optimal model explained much of the variance in the mean judgments, and largely more than what can be explained with the auditory or the visual models alone. Moreover, the high value of the coefficient of determination in the optimal model ($r^2$=`r R2_optimal_1`) suggests that the population was near-optimal. However, we see in Figure\ \@ref(fig:bimodal) that the mean responses deviated systematically from the optimal prediction in that they were slightly pulled toward chance (i.e., the probability 0.5). This fact is due to the increase in the value of the variance associated with each modality. Note however that, despite this increase in randomness, our analysis of modality preference showed that the relative values of these variances were not different (Figure\ \@ref(fig:bias)), meaning that there was no evidence for a modality preference. Thus, 1) There was a simultaneous increase in the values of the auditory and visual variances in the bimodal condition compared to the unimodal condition, meaning that the bimodal input lead to an increase in response randomness, and 2) this increased randomness did not affect the relative weighting of both modalities, i.e., the participants was weighting modalities according to the relative reliability predicted by the optimal model. This situation corresponds to the first case of sub-optimality described in Figure\ \@ref(fig:subOptim). 
 
-In Experiment 1, we tested word recognition when there was multimodal uncertainty in terms of category membership and inherent perceptual noise, only. In real life, however, both sound and visual tokens can undergo distortions due to noisy factors in the environment (e.g., car noise in the background, blurry vision in a foggy weather). In Experiment 2 and 3, we explore this additional level of uncertainty. 
+<!--the model addresses the question of optimality at the population level. However, it is important to  know how individual responses are distributed. In fact, one could think of an extreme case where optimality at the population level would be misleading. Imagine, for instance, that in the bimodal condition half the participants relied exclusively on the visual modality, whereas the other half relied exclusively on the auditory modality. This case could still lead to an aggregate behavior which appears optimal, but this optimality would be spurious.  
+
+To examine this possibility, we consider the distribution of individual cross-modal weighting in the bimodal condition (i.e., $\frac{\sigma^2_{Vb}}{\sigma^2_{Ab}}$).  Using a factor of 10 as a cut-off, we found that `r only_visual_N_1` participants relied almost exclusively on the visual modality, and `r only_sound_N_1` relied almost exclusively on the auditory modality. The percentage of both cases was relatively small compared to the total number of participants (`r 100*(only_visual_N_1+only_sound_N_1)/(only_visual_N_1+only_sound_N_1+both_N_1)`%).  When these outliers  were removed, the distribution had a rather unimodal shape (Figure\ \@ref(fig:individual)). This finding indicates that the population's near optimality is not spurious, but based mostly on genuine cue combination at the individual level.
+
+As a second analysis, we asked whether the observed variance in the individual distribution was due to mere sampling errors or whether it corresponded to a real between-subject variability. We simulated individual responses from the posterior distribution whose parameters were fit to the population as a whole (i.e., the descriptive posterior). The resulting distribution is shown in Figure\ \@ref(fig:individual). For ease of comparison, the simulated distribution was superimposed to the real distribution. We found that the real distribution had a standard deviation of $sd=$ `r subset(sd_ind, data=='real')$sd` which was larger than that of the simulated distribution ($sd=$ `r subset(sd_ind, data=='simulation')$sd`), indicating that there was real between-subject variation beyond sampling errors. This finding means that the participants varied in terms of how they weighted modalities: Compared to the predictions of the population-level model, some participants relied more on the auditory modality, whereas others relied more on the visual modality. -->
+
+As we noted earlier, we did not have enough statistical power to fit a different model for each individual participant. Instead, we fit one model using the data aggregated across all participants. This analysis is informative of behavior at the population level, only.
+However, optimality at the population level could be misleading. Imagine, for instance, that in the bimodal condition half the participants relied exclusively on the visual modality, whereas the other half relied exclusively on the auditory modality. This case could still lead to an aggregate behavior which appears optimal, but this optimality would be spurious. This, in the experiemnt below, we test the cue integration strategy at the individual level. To this end, we increase the statistical power by extending the length of the experiment, allowing us to collect the number of datapoints necessary to fit the models for each participant.
+
+# Experiment 4 
+
+
+```{r}
+
+weight <- feather::read_feather("../Data_and_analysis/ind_weights.feather")
+
+weight.boot <- boot(data=weight$prop, function(x,i) median(x[i]), R=10000)
+
+weight.ci=boot.ci(weight.boot, 
+                  conf = 0.95,
+                  type = c('perc'))
+
+#weights.dist <- weight$prop[weight$prop < 100 & weight$prop > 0.01]
+
+weight.median <- weight.ci$t0
+weight.median_low <- weight.ci$percent[4]
+weight.median_up <- weight.ci$percent[5]
+
+
+ggplot(data=weight, aes(x=prop, y=..count..)) +
+  geom_histogram(alpha=0.5, binwidth = 0.4)+
+  geom_vline(xintercept = weight.median, col='red')+
+  geom_vline(xintercept = weight.median_low, linetype='dashed') +
+  geom_vline(xintercept = weight.median_up, linetype='dashed') +
+  #geom_histogram(data=subset(bimod_all, data=='simulation'), fill="blue", alpha=0.2, binwidth = 0.2)+
+  #geom_histogram(binwidth = 0.2) +
+ scale_x_log10(breaks =c(0.1,1,10)) +
+   xlab("Optimal weighing relative to real weighing") +ylab("Count")+
+  theme_few()+
+  theme(aspect.ratio = 0.7) +
+  coord_cartesian(xlim=c(0.01,100))
+
+```
+
+### Participants
+We recruited a planned sample of N=XX participants from Amazon Mechanical Turk. Only participants with US IP addresses and a task approval rate above 99\% were allowed to participate. They were paid at an hourly rate of \$6/hour. Participants were excluded if they reported having experienced a technical problem of any sort during the online experiment (N=XX), or if they had less than 75\% accurate responses on the unambiguous training trials (N=XX). The final sample consisted of N = XX participants. [I should also add how many participants I excluded because their models did not converge]. All participants provided informed consent before taking the experiment.\footnote{The sample size and exclusion criteria were specified in the pre-registration at https://osf.io/h7mzp/.}
+
+### Stimuli
+We used the same stimuli as in Experiment 1.
+
+### Design and Procedure
+The design and procedure were similar to Experiment 1. The only difference was that we increased the number of datapoints elicited per subject from 70 to 300. 
+
+## Results and analysis
+
+### Unimodal conditions
+
+We fit both population-level models to the aggregated data (as in Experiment 1), and individual models to data from each participant. For the populaton-level models, the results (shown in Figure\ \@ref(fig:unimodal)) replicated the results obtained in Experiment 1. As for the individual-level analysis, the models showed there to be between-subject variability as seen in the paramters's distribution in Figure XX.
+
+### Bimodal condition and Cue combination models
+
+We first generated poupulation-level normative and descriptive models. As shown in Figure\ \@ref(fig:bimodal), the predicted patterns of these models mirrored closely the results obtained in Experiment 1. In addition, the optimality analysis (i.e., done through comparing the optimal and descriptive models) shows that the fitted mean decision threshold was indisguisable form the optimal threshold, thus replicating the results of Experiment 1 (Figure\ \@ref(fig:bias) shows that).  
+
+<!--As a first analysis, we show the histogram comparing the normative models, only (Figure XX). The histogram shows interesting between-subject variability: The optimal model explained the most variance in the majority of cases, showing that participants in these cases combined information from the auditory and visual modality to perform the task. However, the visual and auditory models were sufficient to explain most variance in a large number of participants. These partcipants relied predominantly on only one modality to perform the task.
+This is the crucial analysis which would allow us to test the extent to which participants were optimal at the individual level. We perfomed an optimality analysis following the procedure outlines above, i.e., through comparing the optimal and descriptive models. Firs, at the population level, the fitted mean decision threshold was indisguisable form the optimal threshold, thus replicating the results of Experiment 1 (Figure\ \@ref(fig:bias) shows that). 
+-->
+
+At the individual level, we computed the distribution of optimal weighing relative to the fitted (i.e., descriptive) weighing and we show this distribution in Figure XX. The distribution centers around the optimal prediction (i.e., 1) with a median value of XX [XX,XX]. The variance of the distribution indicates that, while most participants were near optimal in their cue combination, part of the participant tended to rely predominantly on the auditory modality and another part tended to rely predominantly on the visual modality. 
+
+[Here compare to random model to see whether the resuls were due to measurement errors or to genuine betwee-subject variability, but isn't that what the CI around the median show?]
+
+## Discussion
+
+This experiment was an extension to Experiment 1. Through collecting larger-size data per subject, we were able to analyze the cue combination optimlity, not only at the population level, but also at the individual level. The population-level analysis replicated the results of Experiment 1. The individual-level analysis showed that participants' performance approximated a normal distribution centered around the optimal combination. The large variance of this distribution indicate that some participants tend to over-rely on the auditory modality and others tend to over-rely on the visual modality.
+
+In Experiment 1 and Experiment 1 bis, we tested word recognition when there was multimodal uncertainty in terms of category membership and inherent perceptual noise, only. In real life, however, both sound and visual tokens can undergo distortions due to noisy factors in the environment (e.g., car noise in the background, blurry vision in a foggy weather). In Experiment 2 and 3, we explore this additional level of uncertainty. 
 
 # Experiment 2
 
@@ -465,27 +620,66 @@ The alternative hypothesis is that noise in one modality leads to a systematic p
 
 ### Participants
 
-A sample of `r N_all_2` participants was recruited online through Amazon Mechanical Turk. We used the same exclusion criteria as in Experiment 1. `r N_noProb_2 - N_good_2` participants were excluded because they had less than 50\% accurate responses on the unambiguous training trials. The final sample consisted of N = `r N_good_2` participants.
+A sample of `r N_all_2` participants was recruited online through Amazon Mechanical Turk. We used the same exclusion criteria as in Experiment 1.  `r N_noProb_2 - N_good_2` participants were excluded because they had less than 50\% accurate responses on the unambiguous training trials. The final sample consisted of N = `r N_good_2` participants.
 
 ### Stimuli and Procedure
 
 We used the same visual stimuli as in Experiment 1. We also used the same auditory stimuli, but we convolved each item with Brown noise of amplitude 1 using the free sound editor Audacity (2.1.2). The average signal-to-noise ratio was - 4.4 dB. The procedure was exactly the same as in the previous experiment, except that the test stimuli (but not the target) were presented with the new noisy auditory stimuli.
 
-## Results
+## Results and analysis
 
-The analysis are similar to the analysis we did in Experiment 1.
+### Unimodal conditions
 
-### Unimodal condition
-We fit a model for each modality.  Figure \@ref(fig:unimodal) shows human responses together with their best fits. The visual data is a replication of the visual data in Experiment 1. As for the auditory data, in contrast to Experiment 1, responses were flatter, showing more uncertainty.
+We fit a model for each modality. For the auditory modality, our parameter estimates were $b_A=$ `r audBias_val` [`r audBias_ci2`, `r audBias_ci1`] and $\sigma^2_A+\sigma^2_N=$ `r audVar_val` [`r audVar_ci1`, `r audVar_ci2`]. For the visual modality, we found $b_V=$ `r visBias_val` [`r visBias_ci2`, `r visBias_ci1`] and $\sigma^2_V=$ `r visVar_val` [`r visVar_ci1`, `r visVar_ci2`].  Figure\ \@ref(fig:unimodal) shows responses in the unimodal conditions as well as the corresponding best fits. The visual data is a replication of the visual data in Experiment 1. As for the auditory data, in contrast to Experiment 1, responses were flatter, showing more uncertainty.
 
 ### Bimodal condition
-We used the values derived from the unimodal condition (Table \@ref(tab:param)) to construct the visual, auditory and optimal models. In addition, we fit a descriptive model which allows us to assess real human performance in this condition. Figure\ \@ref(fig:bimodal) compares the predictions of these models to human responses. Note that, in contrast to Experiment 1, the visual model explained more variance than the auditory model did. 
 
-### Analysis of optimality
+#### Normative models
+Figure\ \@ref(fig:bimodal) compares the predictions of the visual, auditory and optimal models to human responses. These normative models explained, respectively, `r 100*R2_visual_2`%, `r 100*R2_auditory_2`%, and `r 100*R2_optimal_2`% of total variance in mean judgements. Note that, in contrast to Experiment 1, the visual model explained more variance than the auditory model did.
+
+#### Descriptive model
+We estimated $b=$ `r BiasBi_val` [`r BiasBi_ci2`, `r BiasBi_ci1`], $\sigma^2_{Ab}+\sigma^2_{Nb}=$ `r audVarBi_val` [`r audVarBi_ci1`, `r audVarBi_ci2`], and $\sigma^2_{Vb}=$ `r visVarBi_val` [`r visVarBi_ci1`, `r visVarBi_ci2`]. The fit explained `r R2_descriptive_2`% of total variance. Cross-validation using half the responses to predict the other half yielded $r^2 =$ `r CV_exp2_mean`.
+
+#### Modality preferences
 Figure\ \@ref(fig:bias) (top) shows that the participants' decision threshold deviated from optimality, and that this deviation was biased towards the visual modality (the non-noisy modality). Indeed non-parametric resampling of the data showed a decrease in the value of the slope in the descriptive model compared to the optimal model (Figure\ \@ref(fig:bias), bottom).
 
 ## Discussion
-We found, similar to Experiment 1, that the optimal model explained more variance than the auditory or the visual models alone (Discuss the high correlation, and why this not in itself a necessary but not sufficient indicator of optimality).  We also found a similar discrepancy between the descriptive and optimal models as precision dropped for both the auditory and the visual modalities. As for the weighting scheme used by participants, contrary to Experiment 1 where modalities were weighted according to their relative reliability, we found in this experiment that the visual modality had a greater weight than what was expected from its relative reliability. This situation corresponds to the second case of sub-optimality described in Figure \@ref(fig:subOptim).
+We found, similar to Experiment 1, that the population was generally near optimal ($r^2 =$ `r R2_optimal_2`), and that the optimal model explained more variance than the auditory or the visual models alone.  We also found a similar discrepancy from the optimal model as precision dropped for both the auditory and the visual modalities. As for the weighting scheme used by participants, contrary to Experiment 1 where modalities were weighted according to their relative reliability, we found in this experiment that the visual modality had a greater weight than what was expected from its relative reliability. This situation corresponds to the second case of sub-optimality described in Figure\ \@ref(fig:subOptim).
+
+```{r echo=FALSE}
+#number of participants relying exlusiviely on one modality
+#cut off is a factor of 10
+
+bimodal_bysub_good_2 <- bimodal_bysub_2 %>%
+  filter(bimod > 0.1) %>%
+  filter(bimod < 10) 
+
+#Visual modality 
+only_visual_N_2 <- bimodal_bysub_2 %>%
+  filter(abs(bimod) < 0.1) %>%
+  nrow()
+
+#Sound modality 
+only_sound_N_2 <- bimodal_bysub_2 %>%
+  filter(abs(bimod) > 10) %>%
+  nrow()
+
+#Both
+both_N_2 <- bimodal_bysub_2 %>%
+  filter(abs(bimod) > 0.1) %>%
+  filter(abs(bimod) < 10) %>%
+  nrow()
+
+neg_N_2 <- bimodal_bysub_2 %>%
+  filter(bimod <  -0.1) %>%
+  filter(bimod > -10) %>%
+  nrow()
+
+
+exlusive_prop_2 = only_visual_N_2/(only_sound_N_2+only_visual_N_2)
+
+```
+We were also interested in whether noise in the auditory modality lead more participants to rely exclusively on the visual modality at the individual level. Using the same cut-off as in Experiment 1 (a factor of 10), the percentage of participants who relied exclusively on either modality was `r 100*(only_visual_N_2+only_sound_N_2)/(only_visual_N_2+only_sound_N_2+both_N_2)`%, which is much higher than the percentage obtained in Experiment 1 (`r 100*(only_visual_N_1+only_sound_N_1)/(only_visual_N_1+only_sound_N_1+both_N_1)`%).  Moreover, the subset of participants relying exclusively on the visual modality (compared to those who relied exclusively on the auditory modality)  increased from `r 100*exlusive_prop_1`% in Experiment 1 to `r 100*exlusive_prop_2`% in Experiment 2, indicating that noise in the auditory modality prompted more participants to rely exclusively and disproportionately on the visual modality (see Table \@ref(tab:exclusive)). 
 
 In Experiment 2, we tested the case of added background noise to the auditory modality. In Experiment 3, we test the case of added noise to the visual modality.
 
@@ -581,86 +775,84 @@ plot_grid(plot_noLegend, legend, rel_widths = c(2, .5))
 ```
 
 ### Unimodal conditions
-For the auditory modality, our parameter estimates were. For the visual modality.  Figure\ \@ref(fig:unimodal) shows responses in the unimodal conditions as well as the corresponding fits.
+For the auditory modality, our parameter estimates were $b_A=$ `r audBias_val` [`r audBias_ci2`, `r audBias_ci1`] and $\sigma^2_A=$ `r audVar_val` [`r audVar_ci1`, `r audVar_ci2`]. For the visual modality, we found $b_V=$ `r visBias_val` [`r visBias_ci2`, `r visBias_ci1`] and $\sigma^2_V+\sigma^2_N=$ `r visVar_val` [`r visVar_ci1`, `r visVar_ci2`].  Figure\ \@ref(fig:unimodal) shows responses in the unimodal conditions as well as the corresponding fits.
 The auditory data is a replication of the auditory data in Experiment 1. As for the visual data, we found that, in contrast to Experiment 1 and 2, responses were flatter, showing much more uncertainty.
 
 ### Bimodal condition
 
 #### Normative models
-Figure\ \@ref(fig:bimodal) compares the predictions of the visual, auditory and optimal models to human responses. 
+Figure\ \@ref(fig:bimodal) compares the predictions of the visual, auditory and optimal models to human responses. These normative models explained, respectively, `r 100*R2_visual_3`%, `r 100*R2_auditory_3`%, and `r 100*R2_optimal_3`% of total variance in the mean judgements. 
+
 #### Descriptive model
-Cross-validation using half the responses to predict the other half yielded $r^2=$ 
+We estimated $b=$ `r BiasBi_val` [`r BiasBi_ci2`, `r BiasBi_ci1`], $\sigma^2_{Ab}=$ `r audVarBi_val` [`r audVarBi_ci1`, `r audVarBi_ci2`], and $\sigma^2_{Vb}+\sigma^2_{Nb}=$ `r visVarBi_val` [`r visVarBi_ci1`, `r visVarBi_ci2`]. The fit explained `r 100*R2_descriptive_3`% of total variance. Cross-validation using half the responses to predict the other half yielded $r^2=$ `r CV_exp3_mean`.
 
 #### Modality preferences
 Participants' decision threshold suggested a preference for the auditory modality (the non-noisy modality). Indeed non-parametric resampling of the data showed an increase in the value of the slope in the descriptive model compared to the optimal model (Figure\ \@ref(fig:bias)).
 
 ## Discussion
-We found that the optimal model accounted for almost all the variance. However, whereas in previous experiments the optimal model explained more variance than the auditory or the visual models, here the auditory model explained at least as much variance. Thus, though participants were still sensitive to variation in the noisy visual data in the unimodal condition, they tended to ignore this information in the bimodal condition, and relied almost exclusively on the non-noisy auditory modality. The reason why we saw this (floor) effect when we added noise to the visual modality (Experiment 3), and not when we added noise to the auditory modality (Experiment 2), is the fact that our visual stimuli were originally perceived less categorically and with less certainty than the auditory stimuli. This fact made it more likely for the visual categorization function to become flat and uninformative after a few drops in precision due to noise on the one had, and to the additional randomness induced by the bimodal presentation on the other hand. 
+We found that the optimal model accounted for almost all the variance ($r^2 =$ `r R2_optimal_3`). However, whereas in previous experiments the optimal model explained more variance than the auditory or the visual models, here the auditory model explained at least as much variance ($r^2 =$ `r R2_auditory_3`). Thus, though participants were still sensitive to variation in the noisy visual data in the unimodal condition, they tended to ignore this information in the bimodal condition, and relied almost exclusively on the non-noisy auditory modality. The reason why we saw this (floor) effect when we added noise to the visual modality (Experiment 3), and not when we added noise to the auditory modality (Experiment 2), is the fact that our visual stimuli were originally perceived less categorically and with less certainty than the auditory stimuli. This fact made it more likely for the visual categorization function to become flat and uninformative after a few drops in precision due to noise on the one had, and to the additional randomness induced by the bimodal presentation on the other hand. 
 
 The general finding corresponds to the third case of sub-optimality described in Figure\ \@ref(fig:subOptim). Indeed, precision dropped for both modalities in the bimodal condition compared to the unimodal condition. But the drop was much greater for the visual modality, resulting in a much lower weight assigned to it than what is expected from its reliability. Therefore, just like participants over-relied on the visual modality when the auditory modality was noisy (Experiment 2), they also over-relied on the auditory modality when the visual modality was noisy (Experiment 3).
 
-The past three experiments studied the problem of cue combination at the population level --- The models were fit to the data aggregted across all participants. However, optimality at the population level could be misleading. Imagine, for instance, that in the bimodal condition half the participants relied exclusively on the visual modality, whereas the other half relied exclusively on the auditory modality. This case could still lead to an aggregate behavior which appears optimal, but this optimality would be spurious. Thus, we need to test cue integration at the individual level as well. As we noted earlier, in previous experiments we did not have enough statistical power to fit a different model for each participant. In Experiment 4, below, we re-ran Experiment 1 (where we found near optimal behavior at the population level) while extending its length, allowing us to collect the number of datapoints necessary to fit the models for each participant.
+```{r echo=FALSE}
+#number of participants relying exlusiviely on one modality
+#cut off is a factor of 10
 
-# Experiment 4 
+bimodal_bysub_good_3 <- bimodal_bysub_3 %>%
+  filter(bimod > 0.1) %>%
+  filter(bimod < 10) 
+
+#Visual modality 
+only_visual_N_3 <- bimodal_bysub_3 %>%
+  filter(abs(bimod) < 0.1) %>%
+  nrow()
+
+#Sound modality 
+only_sound_N_3 <- bimodal_bysub_3 %>%
+  filter(abs(bimod) > 10) %>%
+  nrow()
+
+#Both
+both_N_3 <- bimodal_bysub_3 %>%
+  filter(abs(bimod) > 0.1) %>%
+  filter(abs(bimod) < 10) %>%
+  nrow()
+
+neg_N_3 <- bimodal_bysub_3 %>%
+  filter(bimod <  -0.1) %>%
+  filter(bimod > -10) %>%
+  nrow()
 
 
-```{r weights}
 
-weight <- feather::read_feather("../Data_and_analysis/ind_weights.feather")
-
-weight.boot <- boot(data=weight$prop, function(x,i) median(x[i]), R=10000)
-
-weight.ci=boot.ci(weight.boot, 
-                  conf = 0.95,
-                  type = c('perc'))
-
-#weights.dist <- weight$prop[weight$prop < 100 & weight$prop > 0.01]
-
-weight.median <- weight.ci$t0
-weight.median_low <- weight.ci$percent[4]
-weight.median_up <- weight.ci$percent[5]
-
-
-ggplot(data=weight, aes(x=prop, y=..count..)) +
-  geom_histogram(alpha=0.5, binwidth = 0.4)+
-  geom_vline(xintercept = weight.median, col='red')+
-  geom_vline(xintercept = weight.median_low, linetype='dashed') +
-  geom_vline(xintercept = weight.median_up, linetype='dashed') +
-  #geom_histogram(data=subset(bimod_all, data=='simulation'), fill="blue", alpha=0.2, binwidth = 0.2)+
-  #geom_histogram(binwidth = 0.2) +
- scale_x_log10(breaks =c(0.1,1,10)) +
-   xlab("Optimal weighing relative to real weighing") +ylab("Count")+
-  theme_few()+
-  theme(aspect.ratio = 0.7) +
-  coord_cartesian(xlim=c(0.01,100))
+exlusive_prop_3 = only_visual_N_3/(only_sound_N_3+only_visual_N_3)
 
 ```
 
-### Participants
-We recruited a planned sample of N=XX participants from Amazon Mechanical Turk. Only participants with US IP addresses and a task approval rate above 99\% were allowed to participate. They were paid at an hourly rate of \$6/hour. Participants were excluded if they reported having experienced a technical problem of any sort during the online experiment (N=XX), or if they had less than 75\% accurate responses on the unambiguous training trials (N=XX). The final sample consisted of N = XX participants. [I should also add how many participants I excluded because their models did not converge]. All participants provided informed consent before taking the experiment.\footnote{The sample size and exclusion criteria were specified in the pre-registration at https://osf.io/h7mzp/.}
+```{r exclusive, results = "asis", landscape = FALSE}
+#Here make a table to analyze the exlusive reliance on one modality
 
-### Stimuli
-We used the same stimuli as in Experiment 1.
+total_excl_exp1 <- (only_visual_N_1+only_sound_N_1)/(only_visual_N_1+only_sound_N_1+both_N_1)
+total_excl_exp2 <- (only_visual_N_2+only_sound_N_2)/(only_visual_N_2+only_sound_N_2+both_N_2)
+total_excl_exp3 <- (only_visual_N_3+only_sound_N_3)/(only_visual_N_3+only_sound_N_3+both_N_3)
 
-### Design and Procedure
-The design and procedure were similar to Experiment 1. The only difference was that we increased the number of datapoints elicited per subject from 70 to 300. 
+unimod <- data.frame(
+  Experiment = c('Exp1', 'Exp2', 'Exp3'),
+  ofTotal = c(100*total_excl_exp1, 100*total_excl_exp2, 100*total_excl_exp3),
+  Auditory = c(100*(1-exlusive_prop_1), 100*(1-exlusive_prop_2), 100*(1-exlusive_prop_3)),
+  Visual = c(100*exlusive_prop_1, 100*exlusive_prop_2, 100*exlusive_prop_3)
+)
 
-## Results
+apa_table(
+  unimod
+  , caption = "The percentage of participants who relied exclusively on either the visual modality or the auditory modality, using a factor of 10 as a cut-off (e.g., we consider that a participant relied exclusively on the visual modality when their auditory variance is a at least 10 times larger than their visual variance). We show the percentage compared to the total number of participants in each Experiment (`of Total'). From this subset of participants, we show the percentage of those who relied on the  auditory modality (`Auditory'), and the percentage of those who relied on the visual  modality (Visual')."
 
-We fit both population-level models to the aggregated data (as in Experiment 1), and individual models to data from each participant. For the populaton-level models, the results are shown in Figure \@ref(fig:unimodal), Figure \@ref(fig:bimodal), and Table \@ref(tab:param). We note that the results mirrors the patterns obtained in Experiment 1. 
+)
+
+```
 
 
-<!--As a first analysis, we show the histogram comparing the normative models, only (Figure XX). The histogram shows interesting between-subject variability: The optimal model explained the most variance in the majority of cases, showing that participants in these cases combined information from the auditory and visual modality to perform the task. However, the visual and auditory models were sufficient to explain most variance in a large number of participants. These partcipants relied predominantly on only one modality to perform the task.
-This is the crucial analysis which would allow us to test the extent to which participants were optimal at the individual level. We perfomed an optimality analysis following the procedure outlines above, i.e., through comparing the optimal and descriptive models. Firs, at the population level, the fitted mean decision threshold was indisguisable form the optimal threshold, thus replicating the results of Experiment 1 (Figure\ \@ref(fig:bias) shows that). 
--->
-
-At the individual level, we computed the distribution of optimal weighing relative to the fitted (i.e., descriptive) weighing and we show this distribution in Figure \@ref(fig:weights). The distribution centers around the optimal prediction (i.e., 1) with a median value of XX [XX,XX]. The variance of the distribution indicates that, while most participants were near optimal in their cue combination, part of the participant tended to rely predominantly on the auditory modality and another part tended to rely predominantly on the visual modality. 
-
-[Here compare to random model to see whether the resuls were due to measurement errors or to genuine betwee-subject variability, but isn't that what the CI around the median show?]
-
-## Discussion
-
-This experiment was an extension to Experiment 1. Through collecting larger-size data per subject, we were able to analyze the cue combination optimlity, not only at the population level, but also at the individual level. The population-level analysis replicated the results of Experiment 1. The individual-level analysis showed that participants' performance approximated a normal distribution centered around the optimal combination. The large variance of this distribution indicate that some participants tend to over-rely on the auditory modality and others tend to over-rely on the visual modality.
+The percentage of participants who relied exclusively on either the visual modality or the auditory modality was `r 100*(only_visual_N_3+only_sound_N_3)/(only_visual_N_3+only_sound_N_3+both_N_3)`%, which is closer to the percentage of Experiment 2, except that now almost all of them relied on the auditory modality (`r 100*(1-exlusive_prop_3)`%). For ease of comparison, Table \@ref(tab:exclusive) provides a summary of the numbers across the three experiments.
 
 
 # General Discussion
@@ -669,7 +861,7 @@ In the current paper, we explored word identification under uncertainty about bo
 
 ## Patterns of optimality and sub-optimality
 
-In all of our experiments, at the highest level, we found generally optimal behavior. Quantitatively speaking, the optimal model accounted, respectively, for xx, xx, and xx of the variance in mean responses.  When compared to the predictions of the visual or the auditory models, participants generally relied on both modalities to make their decisions in the bimodal condition. Indeed, in Experiment 1 and 2, the optimal model accounted for more variance in mean responses than the auditory or the visual models did. In Experiment 3, participants appeared to rely on one modality, but this was likely a floor effect, due to the fact that noise made the visual input barely perceptible. Further, in Experiment 1, which did not involve background noise, participants not only relied on both modalities, but generally weighted these modalities according to the predictions of the optimal model, that is, according to their relative reliability.  At the individual level, however, we found evidence of a between-subject variation: Some participants relied  more on the visual modality, whereas others relied  more on the auditory modality.
+In all of our experiments, at the highest level, we found generally optimal behavior. Quantitatively speaking, the optimal model accounted, respectively, for `r 100*R2_optimal_1`%, `r 100*R2_optimal_2`%, and `r 100*R2_optimal_3`% of the variance in mean responses.  When compared to the predictions of the visual or the auditory models, participants generally relied on both modalities to make their decisions in the bimodal condition. Indeed, in Experiment 1 and 2, the optimal model accounted for more variance in mean responses than the auditory or the visual models did. In Experiment 3, participants appeared to rely on one modality, but this was likely a floor effect, due to the fact that noise made the visual input barely perceptible. Further, in Experiment 1, which did not involve background noise, participants not only relied on both modalities, but generally weighted these modalities according to the predictions of the optimal model, that is, according to their relative reliability.  At the individual level, however, we found evidence of a between-subject variation: Some participants relied  more on the visual modality, whereas others relied  more on the auditory modality.
 
 Despite this overall pattern, we documented two major cases of sub-optimality. First, in all experiments, the variance associated with each modality increased in the bimodal condition compared to the unimodal conditions. Participants responded slightly more randomly in the bimodal condition than they did in the unimodal conditions. This finding contrasts with research on  multisensory integration where associations tend to lead to a higher precision [e.g., @ernst02]. Nevertheless, there is a crucial difference between these two situations (besides the obvious difference in terms of the models used). Research on  multisensory integration (of which audio-visual speech is arguably an instance) deals with redundant multimodal cues, and these cues are integrated into a unified percept. In contrast, the word-referent association is usually arbitrary and, in particular, the cues are not expected to be correlated perceptually. Therefore the observer cannot form a unified percept, rather, information must be encoded separately from both modalities and must retain this encoding through the decision making process. Retaining two separate cues at the same time instead of forming one unified percept (as in multisensory integration of redundant cues), or instead of retaining only one cue (as in the unimodal case), is likely to place extra demands on cognitive resources, which, in turn, could cause general performance to drop. Indeed, there is evidence that cognitive load due to divided attention (e.g., when performing two tasks at the same time) has a detrimental effect on word recognition [@mattys11].  
 
