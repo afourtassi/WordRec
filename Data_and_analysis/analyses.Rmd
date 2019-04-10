@@ -144,6 +144,7 @@ N_good_4 <- exp4_good %>%
 ```
 
 
+
 ```{r}
 #Data subseting
 
@@ -288,7 +289,7 @@ parameters <- coef_s %>%
   right_join(coef_j) %>%
   select(experiment, bias_s, var_s, bias_c, var_c, bias_j, var_j_s, var_j_c)
 
-feather::write_feather(parameters, "saved_data/parameters.feather")
+#feather::write_feather(parameters, "saved_data/parameters.feather")
 parameters <- feather::read_feather("saved_data/parameters.feather")
 
 
@@ -334,7 +335,7 @@ pred_c <- map2(model_by_exp_c, experiment, pr_c) %>%
 
 pred_uni <- bind_rows(pred_s, pred_c) 
 
-feather::write_feather(pred_uni, "saved_data/pred_uni.feather")
+#feather::write_feather(pred_uni, "saved_data/pred_uni.feather")
 pred_uni <- feather::read_feather("saved_data/pred_uni.feather")
 
 ### plot all
@@ -421,9 +422,10 @@ modelCorr <- pred_bimod %>%
 pred_bimod <- pred_bimod %>%
   left_join(modelCorr)
 
-feather::write_feather(pred_bimod, "saved_data/all_bimod.feather")
+#feather::write_feather(pred_bimod, "saved_data/all_bimod.feather")
 pred_bimod <- feather::read_feather("saved_data/all_bimod.feather")
 ```
+
 main plot 
 ```{r}
 pred_bimod$model <- factor(pred_bimod$model, levels = c('Visual','Auditory', 'Optimal', 'Descriptive'))
@@ -734,6 +736,69 @@ plot_grid(plot_noLegend, legend, rel_widths = c(2, .5))
 
 Individual analysis (Experiment 4)
 
+First simulate answers based on the population level probabilistic model (we will analyse both real and simualted answers simultaneousely)
+```{r}
+#First define all models, 
+
+param <- parameters %>%
+  filter(experiment =="Experiment4")
+
+vrA = param$var_s
+  bA = param$bias_s
+  
+vrV = param$var_c
+  bV = param$bias_c
+  
+vrAj = param$var_j_s
+vrVj = param$var_j_c
+  bj = param$bias_j
+  
+# Sound only
+model_s <- function (x,y) {
+  1/(1 + (1-bA)*exp((-4/vrA)*x+(8/vrA)))
+}
+
+# Visual only
+model_c <- function (x,y) {
+  1/(1 + (1-bV)*exp((-4/vrV)*y+(8/vrV)))
+}
+
+# Optimal
+model_opt <- function (x,y) {
+  
+  1/(1 + (1-bj)*exp((-4/vrA)*x+(-4/vrV)*y+(8/vrA)+(8/vrV)))
+}
+
+
+# Descriptive
+model_des <- function (x,y) {
+  1/(1 + (1-bj)*exp((-4/vrAj)*x+(-4/vrVj)*y+(8/vrAj)+(8/vrVj)))
+}
+
+exp4_s <- exp4_good %>% filter(condition =='sound')
+exp4_c <- exp4_good %>% filter(condition =='concept')
+exp4_j <- exp4_good %>% filter(condition =='joint')
+
+#Simulate sounds
+exp4_both_s <- exp4_s %>%
+  mutate(prob = model_s(sound_dist, concept_dist)) %>%
+  rowwise() %>%
+  mutate(answer_simu = rbinom(1, 1, prob=prob))
+  
+exp4_both_c <- exp4_c %>%
+  mutate(prob = model_c(sound_dist, concept_dist)) %>%
+  rowwise() %>%
+  mutate(answer_simu = rbinom(1, 1, prob=prob))
+
+exp4_both_j <- exp4_j %>%
+  mutate(prob = model_des(sound_dist, concept_dist)) %>%
+  rowwise() %>%
+  mutate(answer_simu = rbinom(1, 1, prob=prob))
+
+#next used this new dataset to run the rest of the code
+
+```
+
 ```{r}
 #Here anlysese of individual models
 
@@ -746,17 +811,39 @@ fit_s <- function(data) {
                  start = list(e=0, vrA=1),
                  nls.control(warnOnly = TRUE)) 
 }
+
+fit_simu_s <- function(data) {
+  nls(answer_simu ~ 1/(1+(1-e)*exp((-4/vrA)*sound_dist+(8/vrA))), 
+                 data=data,
+                 start = list(e=0, vrA=1),
+                 nls.control(warnOnly = TRUE)) 
+}
 #Concept Unimodal
-fit_c <- function(data) {
+fit_c <- function(data, response) {
   nls(answer ~ 1/(1+(1-e)*exp((-4/vrV)*concept_dist+(8/vrV))), 
                  data=data,
                  start = list(e=0, vrV=1),
                  nls.control(warnOnly = TRUE)) 
 }
 
+fit_simu_c <- function(data, response) {
+  nls(answer_simu ~ 1/(1+(1-e)*exp((-4/vrV)*concept_dist+(8/vrV))), 
+                 data=data,
+                 start = list(e=0, vrV=1),
+                 nls.control(warnOnly = TRUE)) 
+}
+
+
 #Joint sound-concept
-fit_j <- function(data) {
+fit_j <- function(data, response) {
   nls(answer ~1/(1+(1-e)*exp((-4/vrA_j)*sound_dist+(-4/vrV_j)*concept_dist+(8/vrA_j)+(8/vrV_j))), 
+                 data=data,
+                 start = list(e=0, vrA_j=1, vrV_j=1),
+                 nls.control(warnOnly = TRUE)) 
+}
+
+fit_simu_j <- function(data, response) {
+  nls(answer_simu ~1/(1+(1-e)*exp((-4/vrA_j)*sound_dist+(-4/vrV_j)*concept_dist+(8/vrA_j)+(8/vrV_j))), 
                  data=data,
                  start = list(e=0, vrA_j=1, vrV_j=1),
                  nls.control(warnOnly = TRUE)) 
@@ -764,19 +851,23 @@ fit_j <- function(data) {
 
 ##Fit the models for each subject
 
-exp4_good_s <- exp4_good %>% filter(condition =='sound')
-exp4_good_c <- exp4_good %>% filter(condition =='concept')
-exp4_good_j <- exp4_good %>% filter(condition =='joint')
-
 #Split data by subject 
-data_by_subj_s <- split(exp4_good_s, exp4_good_s$ID) 
-data_by_subj_c <- split(exp4_good_c, exp4_good_c$ID)
-data_by_subj_j <- split(exp4_good_j, exp4_good_j$ID)
+data_by_subj_s <- split(exp4_both_s, exp4_both_s$ID) 
+data_by_subj_c <- split(exp4_both_c, exp4_both_c$ID)
+data_by_subj_j <- split(exp4_both_j, exp4_both_j$ID)
 
-#.. and fit
+# fit the empirical data
 model_by_subj_s <- map(data_by_subj_s, fit_s) 
 model_by_subj_c <- map(data_by_subj_c, fit_c)
 model_by_subj_j <- map(data_by_subj_j, fit_j)
+
+#.. and the simulated data
+model_by_subj_simu_s <- map(data_by_subj_s, fit_simu_s) 
+model_by_subj_simu_c <- map(data_by_subj_c, fit_simu_c)
+model_by_subj_simu_j <- map(data_by_subj_j, fit_simu_j)
+
+## Convergence info
+
 
 ```
 
@@ -789,6 +880,7 @@ model_by_subj_j <- map(data_by_subj_j, fit_j)
  co_uni <- function(model, ID) {
    data.frame(bias=coefficients(model)[1], 
               variance=coefficients(model)[2], 
+              convergence=model$convInfo$stopMessage,
               ID=ID)
  }
  
@@ -797,6 +889,7 @@ model_by_subj_j <- map(data_by_subj_j, fit_j)
    data.frame(bias=coefficients(model)[1],
               var_s=coefficients(model)[2],
               var_c=coefficients(model)[3],
+              convergence=model$convInfo$stopMessage,
               ID=ID)
  }
 
@@ -806,18 +899,41 @@ ID <- as.list(strsplit(names(model_by_subj_s), " "))
 coef_s <- map2(model_by_subj_s, ID, co_uni) %>%
   bind_rows() %>%
   rename(vrA_u= variance,
-         bA_u =  bias)
+         bA_u =  bias,
+         conv_A = convergence)
+
+coef_simu_s <- map2(model_by_subj_simu_s, ID, co_uni) %>%
+  bind_rows() %>%
+  rename(vrA_u= variance,
+         bA_u =  bias,
+         conv_A = convergence)
+
 
 coef_c <- map2(model_by_subj_c, ID, co_uni) %>%
   bind_rows() %>%
   rename(vrV_u= variance,
-         bV_u =  bias)
+         bV_u =  bias,
+         conv_V = convergence)
+
+coef_simu_c <- map2(model_by_subj_simu_c, ID, co_uni) %>%
+  bind_rows() %>%
+  rename(vrV_u= variance,
+         bV_u =  bias,
+         conv_V = convergence)
 
 coef_j <- map2(model_by_subj_j, ID, co_bim) %>%
   bind_rows() %>%
   rename(vrA_j = var_s,
          vrV_j = var_c,  
-         b =  bias)
+         b =  bias,
+         conv_j = convergence)
+
+coef_simu_j <- map2(model_by_subj_simu_j, ID, co_bim) %>%
+  bind_rows() %>%
+  rename(vrA_j = var_s,
+         vrV_j = var_c,  
+         b =  bias,
+         conv_j = convergence)
 
 ```
 
@@ -864,9 +980,38 @@ data_models <- exp_good %>%
          experiment == "Experiment4") %>%
   group_by(ID, concept_dist, sound_dist) %>%
   summarise(mean = mean(answer)) %>%
+  ungroup() %>%
   left_join(coef_s) %>%
   left_join(coef_c) %>%
   left_join(coef_j)
+
+data_models_simu <- exp_good %>%
+  filter(condition == "joint",
+         experiment == "Experiment4") %>%
+  group_by(ID, concept_dist, sound_dist) %>%
+  summarise(mean = mean(answer)) %>%
+  ungroup() %>%
+  left_join(coef_simu_s) %>%
+  left_join(coef_simu_c) %>%
+  left_join(coef_simu_j)
+
+data_models_good <- data_models %>%
+  filter(conv_A == "converged",
+         conv_V == "converged",
+         conv_j == "converged")
+
+data_models_good_simu <- data_models_simu %>%
+  filter(conv_A == "converged",
+         conv_V == "converged",
+         conv_j == "converged")
+
+N_conv <- data_models_good %>% 
+  distinct(ID) %>%
+  nrow()
+
+N_conv_simu <- data_models_good_simu %>% 
+  distinct(ID) %>%
+  nrow()
   
 
 models <- function (subject_data) {
@@ -878,7 +1023,7 @@ models <- function (subject_data) {
   gather(model, pred, Visual, Auditory, Optimal, Descriptive) 
 }
 
-data_by_subj <- split(data_models, data_models$ID) 
+data_by_subj <- split(data_models_good, data_models_good$ID) 
 
 data_preds <- map(data_by_subj, models) %>%
   bind_rows()
@@ -893,48 +1038,133 @@ correlations <- data_preds %>%
 Individual distribution
 
 ```{r}
-weight <- data_models %>%
+weight <- data_models_good %>%
   group_by(ID, vrA_u, vrV_u, vrA_j, vrV_j) %>%
   select(ID, vrA_u, vrV_u, vrA_j, vrV_j) %>%
   unique() %>%
   mutate(weight_u = vrA_u/vrV_u,
          weight_b = vrA_j/vrV_j) %>%
-  mutate(prop = weight_u/weight_b) 
+  mutate(prop = weight_u/weight_b) %>%
+  mutate(type='real')
 
-feather::write_feather(weight, "ind_weights.feather")
-weight <- feather::read_feather("ind_weights.feather")
+weight_simu <- data_models_good_simu %>%
+  group_by(ID, vrA_u, vrV_u, vrA_j, vrV_j) %>%
+  select(ID, vrA_u, vrV_u, vrA_j, vrV_j) %>%
+  unique() %>%
+  mutate(weight_u = vrA_u/vrV_u,
+         weight_b = vrA_j/vrV_j) %>%
+  mutate(prop = weight_u/weight_b) %>%
+  mutate(type='simulated')
+
+weight_both <- weight %>%
+  bind_rows(weight_simu)
 
 
-weight_separate <- weight %>%
-  select(ID, weight_u, weight_b) %>%
-  gather (key, value, weight_u, weight_b)
-
-weight.boot <- boot(data=weight$prop, function(x,i) median(x[i]), R=10000)
-
-weight.ci=boot.ci(weight.boot, 
-                  conf = 0.95,
-                  type = c('perc'))
+#feather::write_feather(weight, "ind_weights.feather")
+#weight <- feather::read_feather("ind_weights.feather")
 
 
-#weights.dist <- weight$prop[weight$prop < 100 & weight$prop > 0.01]
+weight_simu_low <- quantile(weight_simu$prop, 0.05)
+weight_simu_high <- quantile(weight_simu$prop, 0.95) 
 
-weight.median <- weight.ci$t0
-weight.median_low <- weight.ci$percent[4]
-weight.median_up <- weight.ci$percent[5]
 
-ggplot(data=weight, aes(x=prop, y=..count..)) +
-  geom_histogram(alpha=0.5, binwidth = 0.4)+
-  geom_vline(xintercept = weight.median, col='red')+
-  geom_vline(xintercept = weight.median_low, linetype='dashed') +
-  geom_vline(xintercept = weight.median_up, linetype='dashed') +
+
+ggplot(data=weight_both, aes(x=prop, y=..ncount..)) +
+  #geom_histogram(data=subset(weight_both, data=='real'), fill="red", alpha=0.2, binwidth = 0.4)+
+  geom_histogram(data=subset(weight_both, data=='simulated'), fill="blue", alpha=0.1, binwidth = 0.4)+
   #geom_histogram(data=subset(bimod_all, data=='simulation'), fill="blue", alpha=0.2, binwidth = 0.2)+
   #geom_histogram(binwidth = 0.2) +
+  geom_vline(xintercept = weight_simu_low, linetype='dashed') +
+  geom_vline(xintercept = weight_simu_high, linetype='dashed')+
  scale_x_log10(breaks =c(0.1,1,10)) +
    xlab("Optimal weighing relative to real weighing") +ylab("Count")+
   theme_few()+
-  theme(aspect.ratio = 0.7) +
-  coord_cartesian(xlim=c(0.01,100))
+  theme(aspect.ratio = 0.7) #+
+  #coord_cartesian(xlim=c(0.01,100))
 
+
+
+```
+
+Simulat random responses from the population level model
+
+First, take the real experimental data
+```{r}
+exp_exp4_s <- exp_good %>%
+  filter(condition =="sound",
+         experiment == "Experiment4")
+
+exp_exp4_c <- exp_good %>%
+  filter(condition =="concept",
+         experiment == "Experiment4")
+
+exp_exp4_j <- exp_good %>%
+  filter(condition =="joint",
+         experiment == "Experiment4")
+```
+
+Then, instead of the real answers, simulate new answers from the population-level model
+
+
+
+
+
+```{r}
+
+#What does the mean data say 
+#generate two data point from a binomial with probabilty model_fit1()
+#loop over visual and auditory distance/ or create  adataframe with 
+
+#For each subject, simulate the auditory, and visual responses as well as bimodal (descriptive) mod
+
+simulations <- data.frame()
+#x <- c("ID", "bimod")
+#colnames(simlations) <- x
+
+#
+
+for (i in 1:50) {
+Simul_exp1 <- joint_all_exp1 %>%
+  select(ID, sound_dist, concept_dist) %>%
+  mutate(prob = model_fit1(sound_dist, concept_dist)) %>%
+  rowwise() %>%
+  mutate(answer = rbinom(1, 1, prob=prob))
+
+joint_bysub_sim_1 <- Simul_exp1 %>%
+  group_by(ID) %>%
+  do(fit_joint_sim_1 = glm(answer ~ concept_dist+ sound_dist, data=., family = binomial()))
+
+bimodal_bysub_sim_1 = tidy(joint_bysub_sim_1, fit_joint_sim_1) %>%
+  filter(term == 'concept_dist' | term == 'sound_dist') %>%
+  mutate(j_var = 4/(estimate)) %>%
+  select(ID, term, j_var) %>%
+  spread(term, j_var) %>%
+  rename(j_c_var = concept_dist, 
+         j_s_var = sound_dist) %>%
+  mutate(bimod = j_c_var/j_s_var) %>%
+  select(ID, bimod) %>%
+  filter(bimod > 0.1) %>%
+  filter(bimod < 10) 
+
+
+  simulations <- bind_rows(simulations, bimodal_bysub_sim_1)
+}
+  
+  #I need to take the average of this over multiple runs 
+  
+
+  bimod_sim <- simulations  %>%
+    mutate(data='simulation') 
+
+  bimod_real <- bimodal_bysub_good_1  %>%
+    select(ID, bimod) %>%
+    mutate(data='real') 
+  
+  #n_remove <- nrow(bimod_sim)-nrow(bimod_real)
+  
+  #bimod_sim <- head(bimod_sim, -n_remove)
+                    
+  bimod_all <- bind_rows(bimod_real, bimod_sim) 
 
 ```
 
