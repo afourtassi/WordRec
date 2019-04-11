@@ -779,23 +779,49 @@ exp4_s <- exp4_good %>% filter(condition =='sound')
 exp4_c <- exp4_good %>% filter(condition =='concept')
 exp4_j <- exp4_good %>% filter(condition =='joint')
 
-#Simulate sounds
-exp4_both_s <- exp4_s %>%
-  mutate(prob = model_s(sound_dist, concept_dist)) %>%
-  rowwise() %>%
-  mutate(answer_simu = rbinom(1, 1, prob=prob))
-  
-exp4_both_c <- exp4_c %>%
-  mutate(prob = model_c(sound_dist, concept_dist)) %>%
-  rowwise() %>%
-  mutate(answer_simu = rbinom(1, 1, prob=prob))
-
-exp4_both_j <- exp4_j %>%
-  mutate(prob = model_des(sound_dist, concept_dist)) %>%
-  rowwise() %>%
-  mutate(answer_simu = rbinom(1, 1, prob=prob))
 
 #next used this new dataset to run the rest of the code
+
+simu_s <- data.frame()
+simu_c <- data.frame()
+simu_j <- data.frame()
+#x <- c("ID", "bimod")
+#colnames(simlations) <- x
+
+#
+
+for (i in 1:50) {
+
+simu_temp_s <- exp4_s %>%
+  mutate(ID_2 = paste(ID,'_',i, sep="")) %>%
+  mutate(prob = model_s(sound_dist, concept_dist)) %>%
+  rowwise() %>%
+  mutate(answer_simu = rbinom(1, 1, prob=prob)) %>%
+  select(-ID) %>%
+  rename(ID=ID_2)
+  
+simu_temp_c <- exp4_c %>%
+  mutate(ID_2 = paste(ID,'_',i, sep="")) %>%
+  mutate(prob = model_c(sound_dist, concept_dist)) %>%
+  rowwise() %>%
+  mutate(answer_simu = rbinom(1, 1, prob=prob)) %>%
+  select(-ID) %>%
+  rename(ID=ID_2)
+
+simu_temp_j <- exp4_j %>%
+  mutate(ID_2 = paste(ID,'_',i, sep="")) %>%
+  mutate(prob = model_des(sound_dist, concept_dist)) %>%
+  rowwise() %>%
+  mutate(answer_simu = rbinom(1, 1, prob=prob)) %>%
+  select(-ID) %>%
+  rename(ID=ID_2)
+
+simu_s <- bind_rows(simu_s, simu_temp_s)
+simu_c <- bind_rows(simu_c, simu_temp_c)
+simu_j <- bind_rows(simu_j, simu_temp_j)
+  
+}
+  
 
 ```
 
@@ -851,15 +877,20 @@ fit_simu_j <- function(data, response) {
 
 ##Fit the models for each subject
 
-#Split data by subject 
-data_by_subj_s <- split(exp4_both_s, exp4_both_s$ID) 
-data_by_subj_c <- split(exp4_both_c, exp4_both_c$ID)
-data_by_subj_j <- split(exp4_both_j, exp4_both_j$ID)
+#Split data by subject real
+data_by_subj_s <- split(exp4_s, exp4_s$ID) 
+data_by_subj_c <- split(exp4_c, exp4_c$ID)
+data_by_subj_j <- split(exp4_j, exp4_j$ID)
 
 # fit the empirical data
 model_by_subj_s <- map(data_by_subj_s, fit_s) 
 model_by_subj_c <- map(data_by_subj_c, fit_c)
 model_by_subj_j <- map(data_by_subj_j, fit_j)
+
+#Split data by subject simulated
+data_by_subj_s <- split(simu_s, simu_s$ID) 
+data_by_subj_c <- split(simu_c, simu_c$ID)
+data_by_subj_j <- split(simu_j, simu_j$ID)
 
 #.. and the simulated data
 model_by_subj_simu_s <- map(data_by_subj_s, fit_simu_s) 
@@ -893,42 +924,43 @@ model_by_subj_simu_j <- map(data_by_subj_j, fit_simu_j)
               ID=ID)
  }
 
-ID <- as.list(strsplit(names(model_by_subj_s), " "))
- 
+ID_real <- as.list(strsplit(names(model_by_subj_s), " "))
+ID_simu <- as.list(strsplit(names(model_by_subj_simu_s), " "))
+
 #Here extract ceofficients to build optimal model later
-coef_s <- map2(model_by_subj_s, ID, co_uni) %>%
+coef_s <- map2(model_by_subj_s, ID_real, co_uni) %>%
   bind_rows() %>%
   rename(vrA_u= variance,
          bA_u =  bias,
          conv_A = convergence)
 
-coef_simu_s <- map2(model_by_subj_simu_s, ID, co_uni) %>%
+coef_simu_s <- map2(model_by_subj_simu_s, ID_simu, co_uni) %>%
   bind_rows() %>%
   rename(vrA_u= variance,
          bA_u =  bias,
          conv_A = convergence)
 
 
-coef_c <- map2(model_by_subj_c, ID, co_uni) %>%
+coef_c <- map2(model_by_subj_c, ID_real, co_uni) %>%
   bind_rows() %>%
   rename(vrV_u= variance,
          bV_u =  bias,
          conv_V = convergence)
 
-coef_simu_c <- map2(model_by_subj_simu_c, ID, co_uni) %>%
+coef_simu_c <- map2(model_by_subj_simu_c, ID_simu, co_uni) %>%
   bind_rows() %>%
   rename(vrV_u= variance,
          bV_u =  bias,
          conv_V = convergence)
 
-coef_j <- map2(model_by_subj_j, ID, co_bim) %>%
+coef_j <- map2(model_by_subj_j, ID_real, co_bim) %>%
   bind_rows() %>%
   rename(vrA_j = var_s,
          vrV_j = var_c,  
          b =  bias,
          conv_j = convergence)
 
-coef_simu_j <- map2(model_by_subj_simu_j, ID, co_bim) %>%
+coef_simu_j <- map2(model_by_subj_simu_j, ID_simu, co_bim) %>%
   bind_rows() %>%
   rename(vrA_j = var_s,
          vrV_j = var_c,  
@@ -985,9 +1017,7 @@ data_models <- exp_good %>%
   left_join(coef_c) %>%
   left_join(coef_j)
 
-data_models_simu <- exp_good %>%
-  filter(condition == "joint",
-         experiment == "Experiment4") %>%
+data_models_simu <- simu_j %>%
   group_by(ID, concept_dist, sound_dist) %>%
   summarise(mean = mean(answer)) %>%
   ungroup() %>%
@@ -1012,8 +1042,9 @@ N_conv <- data_models_good %>%
 N_conv_simu <- data_models_good_simu %>% 
   distinct(ID) %>%
   nrow()
+```
   
-
+```{r}
 models <- function (subject_data) {
   subject_data %>% rename(Joint = mean) %>%
   mutate(Descriptive = model_des(subject_data, sound_dist, concept_dist)) %>%
@@ -1060,18 +1091,30 @@ weight_both <- weight %>%
   bind_rows(weight_simu)
 
 
-#feather::write_feather(weight, "ind_weights.feather")
+feather::write_feather(weight_both, "ind_weights.feather")
 #weight <- feather::read_feather("ind_weights.feather")
 
 
 weight_simu_low <- quantile(weight_simu$prop, 0.05)
-weight_simu_high <- quantile(weight_simu$prop, 0.95) 
+weight_simu_up <- quantile(weight_simu$prop, 0.95) 
 
+#Number of subject relying on the visual modality (p < 0.05) and the auditory modality (p > 0.95)
 
+subj_all <- weight %>%
+  nrow()
 
+subj_vis <- weight %>%
+  filter(prop < weight_simu_low) %>%
+  nrow()
+
+subj_aud <- weight %>%
+  filter(prop > weight_simu_up) %>%
+  nrow()
+  
+  
 ggplot(data=weight_both, aes(x=prop, y=..ncount..)) +
-  #geom_histogram(data=subset(weight_both, data=='real'), fill="red", alpha=0.2, binwidth = 0.4)+
-  geom_histogram(data=subset(weight_both, data=='simulated'), fill="blue", alpha=0.1, binwidth = 0.4)+
+  geom_histogram(data=subset(weight_both, type=='real'), fill="red", alpha=0.2, binwidth = 0.4)+
+  geom_histogram(data=subset(weight_both, type=='simulated'), fill="blue", alpha=0.1, binwidth = 0.4)+
   #geom_histogram(data=subset(bimod_all, data=='simulation'), fill="blue", alpha=0.2, binwidth = 0.2)+
   #geom_histogram(binwidth = 0.2) +
   geom_vline(xintercept = weight_simu_low, linetype='dashed') +
@@ -1086,29 +1129,6 @@ ggplot(data=weight_both, aes(x=prop, y=..ncount..)) +
 
 ```
 
-Simulat random responses from the population level model
-
-First, take the real experimental data
-```{r}
-exp_exp4_s <- exp_good %>%
-  filter(condition =="sound",
-         experiment == "Experiment4")
-
-exp_exp4_c <- exp_good %>%
-  filter(condition =="concept",
-         experiment == "Experiment4")
-
-exp_exp4_j <- exp_good %>%
-  filter(condition =="joint",
-         experiment == "Experiment4")
-```
-
-Then, instead of the real answers, simulate new answers from the population-level model
-
-
-
-
-
 ```{r}
 
 #What does the mean data say 
@@ -1117,54 +1137,7 @@ Then, instead of the real answers, simulate new answers from the population-leve
 
 #For each subject, simulate the auditory, and visual responses as well as bimodal (descriptive) mod
 
-simulations <- data.frame()
-#x <- c("ID", "bimod")
-#colnames(simlations) <- x
-
-#
-
-for (i in 1:50) {
-Simul_exp1 <- joint_all_exp1 %>%
-  select(ID, sound_dist, concept_dist) %>%
-  mutate(prob = model_fit1(sound_dist, concept_dist)) %>%
-  rowwise() %>%
-  mutate(answer = rbinom(1, 1, prob=prob))
-
-joint_bysub_sim_1 <- Simul_exp1 %>%
-  group_by(ID) %>%
-  do(fit_joint_sim_1 = glm(answer ~ concept_dist+ sound_dist, data=., family = binomial()))
-
-bimodal_bysub_sim_1 = tidy(joint_bysub_sim_1, fit_joint_sim_1) %>%
-  filter(term == 'concept_dist' | term == 'sound_dist') %>%
-  mutate(j_var = 4/(estimate)) %>%
-  select(ID, term, j_var) %>%
-  spread(term, j_var) %>%
-  rename(j_c_var = concept_dist, 
-         j_s_var = sound_dist) %>%
-  mutate(bimod = j_c_var/j_s_var) %>%
-  select(ID, bimod) %>%
-  filter(bimod > 0.1) %>%
-  filter(bimod < 10) 
-
-
-  simulations <- bind_rows(simulations, bimodal_bysub_sim_1)
-}
-  
-  #I need to take the average of this over multiple runs 
-  
-
-  bimod_sim <- simulations  %>%
-    mutate(data='simulation') 
-
-  bimod_real <- bimodal_bysub_good_1  %>%
-    select(ID, bimod) %>%
-    mutate(data='real') 
-  
-  #n_remove <- nrow(bimod_sim)-nrow(bimod_real)
-  
-  #bimod_sim <- head(bimod_sim, -n_remove)
-                    
-  bimod_all <- bind_rows(bimod_real, bimod_sim) 
+ 
 
 ```
 
