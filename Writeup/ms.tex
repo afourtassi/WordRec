@@ -23,7 +23,7 @@
 }{}
 \usepackage{hyperref}
 \hypersetup{unicode=true,
-            pdftitle={How Optimal is Novel Word Recogntion Under Multimodal Uncertainty?},
+            pdftitle={How Optimal is Word Recognition Under Multimodal Uncertainty?},
             pdfauthor={Abdellah Fourtassi~\& Michael C. Frank},
             pdfkeywords={Language understanding; audio-visual processing; word learning; speech
 perception; computational modeling.},
@@ -70,7 +70,7 @@ perception; computational modeling.},
 \def\footnote{\protect\rmarkdownfootnote}
 
 
-  \title{How Optimal is Novel Word Recogntion Under Multimodal Uncertainty?}
+  \title{How Optimal is Word Recognition Under Multimodal Uncertainty?}
     \author{Abdellah Fourtassi\textsuperscript{1}~\& Michael C.
 Frank\textsuperscript{1}}
     \date{}
@@ -124,22 +124,21 @@ Fourtassi, Postal address. E-mail:
 \abstract{
 Identifying a spoken word in a referential context requires both the
 ability to integrate multimodal input and the ability to reason under
-uncertainty. How do these tasks interact with one another? We introduce
-a paradigm that allows us to examine how adults identify novel words
-under joint uncertainty in the auditory and visual modalities and
-propose an ideal observer model of how cues in these modalities are
-combined optimally. Model predictions are tested in three experiments
-where novel word recognition is made under two kinds of uncertainty:
-category ambiguity and perceptual noise. In all cases, the optimal model
-explains much of the variance in human mean judgments. When the signal
-is not distorted with noise, participants weight the auditory and visual
-cues optimally, that is, according to the relative reliability of each
-modality. But when one modality has noise added to it, human perceivers
-systematically prefer the unperturbed modality to a greater extent than
-the optimal model does. The study provides a formal framework which
-helps to quantify how word form and word meaning interact in word
-recognition under uncertainty. Moreover it offers a first step towards a
-model that accounts for form-meaning synergies in early word learning.
+uncertainty. How do these tasks interact with one another? We study how
+adults identify novel words under joint uncertainty in the auditory and
+visual modalities and we propose an ideal observer model of how cues in
+these modalities are combined optimally. Model predictions are tested in
+four experiments where recognition is made under various sources of
+uncertainty. We found that participants use both auditory and visual
+cues to recognize novel words. When the signal is not distorted with
+environmental noise, participants weight the auditory and visual cues
+optimally, that is, according to the relative reliability of each
+modality. In contrast, when one modality has noise added to it, human
+perceivers systematically prefer the unperturbed modality to a greater
+extent than the optimal model does. This work extends the literature of
+perceptual cue combination to the case of word recognition in a
+referential context, thus offering a first step towards a model that
+accounts for sound-meaning synergies in early word learning.
 
 
 }
@@ -167,25 +166,26 @@ model that accounts for form-meaning synergies in early word learning.
 
 \section{Introduction}\label{introduction}
 
-Language uses symbols expressed in one modality -- the auditory
-modality, in the case of speech -- to communicate about the world, which
-we perceive through many different sensory modalities. Consider hearing
-someone yell \enquote{bee!} at a picnic, as a honey bee buzzes around
-the food. Identifying a word involves processing the auditory
+Language uses symbols expressed in one modality --- the auditory
+modality, in the case of speech --- to communicate about the world,
+which we perceive through many different sensory modalities. Consider
+hearing someone yell \enquote{bee!} at a picnic, as a honey bee buzzes
+around the food. Identifying a word involves processing the auditory
 information as well as other perceptual signals (e.g., the visual image
 of the bee, the sound of its wings, the sensation of the bee flying by
 your arm). A word is successfully identified when information from these
-modalities provide convergent evidence. However, word identification
-takes place in a noisy world, and the cues received through each
-modality may not provide a definitive answer. On the auditory side,
-individual acoustic word tokens are almost always ambiguous with respect
-to the particular sequence of phonemes they represent, which is due to
-the inherent variability of how a phonetic category is realized
-acoustically (Hillenbrand, Getty, Clark, \& Wheeler, 1995). And some
-tokens may be distorted additionally by mispronunciation or ambient
-noise. Perhaps the speaker was yelling \enquote{pea} and not
-\enquote{bee.} Similarly, a sensory impression may not be enough to make
-a definitive identification of a visual
+modalities provide convergent evidence.
+
+However, word identification takes place in a noisy world, and the cues
+received through each modality may not provide a definitive answer. On
+the auditory side, individual acoustic word tokens are almost always
+ambiguous with respect to the particular sequence of phonemes they
+represent, which is due to the inherent variability of how a phonetic
+category is realized acoustically (Hillenbrand, Getty, Clark, \&
+Wheeler, 1995). And some tokens may be distorted additionally by
+mispronunciation or ambient noise. Perhaps the speaker was yelling
+\enquote{pea} and not \enquote{bee.} Similarly, a sensory impression may
+not be enough to make a definitive identification of a visual
 category.\footnote{In the general case, language can of course be visual as well as auditory, and object identification can be done through many modalities. For simplicity, we focus on audio-visual matching here.}
 Perhaps the insect was a beetle or a fly instead. How does the listener
 deal with such multimodal uncertainty to recognize the speaker's
@@ -198,12 +198,12 @@ children might succeed in this type of task despite referential
 ambiguity (Medina, Snedeker, Trueswell, \& Gleitman, 2011; Pinker, 1989;
 Smith \& Yu, 2008; Suanda, Mugwanya, \& Namy, 2014; Vlach \& Johnson,
 2013; Vouloumanos, 2008; Yurovsky \& Frank, 2015). However, even when
-they \emph{know} the meanings of a word, listeners (both children and
-adults) often still find it challenging to recognize which word the
+they have learned the exact meaning of a word, observers (both children
+and adults) often still find it challenging to recognize which word the
 speaker has uttered, especially under noise (Mattys, Davis, Bradlow, \&
 Scott, 2012; Peelle, 2018). The purpose of the current study is thus to
-explore word recognition by adults under multimodal uncertainty. We
-focus on the special case where people have access to multimodal cues
+explore word recognition by adults under multimodal uncertainty,
+focusing on the special case where people have access to multimodal cues
 from the auditory speech and the visual referent. In the General
 Discussion, we return to the question of how these findings relate to
 questions about word learning.
@@ -241,7 +241,8 @@ closely reflected the optimal predictions. And Feldman et al. (2009)
 studied the perceptual magnet effect, a phenomenon that involves reduced
 discriminability near prototypical sounds in the native language (Kuhl,
 1991), showing that this effect can be explained as the consequence of
-optimally solving the problem of perception under uncertainty.
+optimally solving the problem of perception under uncertainty (see also
+Kronrod, Coppess, \& Feldman, 2016).
 
 Besides the acoustic cues explored in Clayards et al. (2008) and Feldman
 et al. (2009), there is extensive evidence that information from the
@@ -252,21 +253,21 @@ characterization of how probabilistic cues from speech and lip movements
 can be optimally combined. They showed that human performance during
 audio-visual phonemic labeling was consistent (at least at the
 qualitative level) with the predictions of an ideal observer. This
-previous research did not, however, systematically study speech
-understanding when visual information was obtained through the
-referential context rather than through observation of speaker's face.
-Although some experimental findings show that information about the
-identity of a referent can be integrated with linguistic information to
-resolve lexical and syntactic ambiguities in speech (e.g., Eberhard,
-Spivey-Knowlton, Sedivy, \& Tanenhaus, 1995; Spivey, Tanenhaus,
-Eberhard, \& Sedivy, 2002; Tanenhaus, Spivey-Knowlton, Eberhard, \&
-Sedivy, 1995), to our knowledge no study has offered an ideal observer
-analysis of this task.
+previous research did not, however, study speech understanding when
+visual information was obtained through the referential context rather
+than through observation of speaker's face. Although some experimental
+findings show that information about the identity of a referent can be
+integrated with linguistic information to resolve lexical and syntactic
+ambiguities in speech (e.g., Eberhard, Spivey-Knowlton, Sedivy, \&
+Tanenhaus, 1995; Spivey, Tanenhaus, Eberhard, \& Sedivy, 2002;
+Tanenhaus, Spivey-Knowlton, Eberhard, \& Sedivy, 1995), to our knowledge
+no study has offered an ideal observer analysis of this task.
 
 Combining information between words and visual referents might seem
-similar to audio-visual speech integration, but there are at least two
-fundamental differences between these two cases, and both can influence
-the way the auditory and visual cues are combined.
+similar to audio-visual speech integration (e.g., Bejjanki et al.,
+2011), but there are at least two fundamental differences between these
+two cases, and both can influence the way the auditory and visual cues
+are combined.
 
 First, in the case of audio-visual speech, both modalities offer
 information about the same underlying speech category. They differ only
@@ -278,8 +279,8 @@ differences are in addition to possible differences in informational
 reliability). Further, speech is claimed to have a privileged status
 compared to other sensory stimuli (Edmiston \& Lupyan, 2015; Lupyan \&
 Thompson-Schill, 2012; Vouloumanos \& Waxman, 2014; Waxman \& Gelman,
-2009; Waxman \& Markow, 1995), and that this privilege is suggested to
-be specifically related to the ability to refer (Waxman \& Gelman,
+2009; Waxman \& Markow, 1995), and this privilege is suggested to be
+specifically related to the ability to refer (Waxman \& Gelman,
 2009).\footnote{There is, however, a debate as to whether speech is
   privileged for children and adults for similar reasons. Whereas some
   researchers suggest that speech is privileged for both children and
@@ -314,17 +315,17 @@ perception).
 \subsection{The current study}\label{the-current-study}
 
 We investigate how cues from the auditory and the visual modality are
-combined in recognizing words in a referential context. In particular,
-we study how this combination is performed under various degrees of
-uncertainty in both the auditory and the visual modality. Imagine, for
-example, that someone is uncertain whether they heard \enquote{pea} or
-\enquote{bee.} Does this uncertainty make them rely more on the referent
-(e.g., the object being pointed at)? Or, if they are not sure if they
-saw a bee or a fly, does this uncertainty make them rely more on the
-sound? More importantly, when input in both modalities is uncertain to
-varying degrees, do they weight each modality according to its relative
-reliability (the optimal strategy), or do they over-rely on a particular
-modality?
+combined to recognize novel words in a referential context. In
+particular, we study how this combination is performed under various
+degrees of uncertainty in both the auditory and the visual modality.
+Imagine, for example, that someone is uncertain whether they heard
+\enquote{pea} or \enquote{bee.} Does this uncertainty make them rely
+more on the referent (e.g., the object being pointed at)? Or, if they
+are not sure if they saw a bee or a fly, does this uncertainty make them
+rely more on the sound? More importantly, when input in both modalities
+is uncertain to varying degrees, do they weight each modality according
+to its relative reliability (the optimal strategy), or do they over-rely
+on a particular modality?
 
 We begin by proposing an ideal observer model that performs the
 combination in an optimal fashion. We then compare the predictions of
@@ -332,25 +333,21 @@ the optimal model to human responses. Humans can deviate from the ideal
 for several reasons. For instance, as mentioned above, a sub-optimality
 can be induced by the privileged status of a particular modality or by
 the arbitrariness of the referential association. In order to study
-possible patterns of sub-optimality, we compare the optimal model (which
-provides a normative benchmark) to a descriptive model (which is fit to
-human responses). Comparing parameter estimates between these two
-formulations allows us to quantify the degree of deviation from
-optimality.
+possible patterns of sub-optimality, we compare the optimal normative
+model to a descriptive model (which is fit to actual responses).
+Comparing parameter estimates between these two formulations allows us
+to quantify the degree of deviation from optimality.
 
-We tested the ideal observer model's predictions in three behavioral
+We tested the ideal observer model's predictions in four behavioral
 experiments where we varied the source of uncertainty. In Experiment 1,
 audio-visual tokens were ambiguous with respect to their category
-membership only. In Experiment 2, we intervened by adding perceptual
-noise to the auditory modality, and in Experiment 3, we intervened by
-adding perceptual noise to the visual modality. In all experiments,
-participants were quantitatively near-optimal, though overall response
-precision was slightly lower than expected. In Experiment 1 -- where
-neither of the modalities was perturbed with background noise --
-participants weighted auditory and visual cues according to the relative
-reliability predicted by the optimal model. However, in Experiment 2 and
-3, participants over-relied on one modality when the other modality was
-perturbed with additional noise.
+membership (in addition to sensory noise). In Experiment 2, we
+intervened by adding environmental noise that degraded information from
+the auditory modality and in Experiment 3 we intervened by adding
+environmental noise that degraded information from the visual modality.
+Finally, Experiment 4 is a replication of Experiment 1 with a higher
+power design, allowing us to test cue combination at the individual
+level.
 
 \section{Paradigm and Models}\label{paradigm-and-models}
 
@@ -361,10 +358,10 @@ optimally with an ideal observer model.
 \subsection{The Audio-Visual Word Recognition
 Task}\label{the-audio-visual-word-recognition-task}
 
-We introduce a paradigm adapted from a task used by Sloutsky and
-Napolitano (2003). The original was used with both children and adults
-to probe audio-visual encoding (see Robinson \& Sloutsky, 2010 for
-review). Here we use a slightly different version to test word
+We introduce an experimental paradigm adapted from a task used by
+Sloutsky and Napolitano (2003). The original was used with both children
+and adults to probe audio-visual encoding (see Robinson \& Sloutsky,
+2010 for review). Here we use a slightly different version to test word
 recognition in a referential context. We use two visual categories (cat
 and dog) and two auditory categories (/b/ and /d/ embedded in the
 minimal pair /aba/-/ada/). For each participant, an arbitrary pairing is
@@ -418,9 +415,10 @@ around an individual perceptual estimate but also its \emph{categorical
 variability}, i.e., the uncertainty related to whether this perceptual
 estimate belongs to a given category (see also Bankieris, Bejjanki, \&
 Aslin, 2017; Bejjanki et al., 2011). In what follows, we describe a
-model that accounts for both types of variability. First, we describe
-the model in the simplified case of categorical variability only.
-Second, we augment this simplified model to account for sensory noise.
+probabilistic model that accounts for both types of variability. First,
+we describe the model in the simplified case of categorical variability
+only. Second, we augment this simplified model to account for sensory
+and envirnmental noise.
 
 \subsubsection{Categorical variability}\label{categorical-variability}
 
@@ -563,14 +561,14 @@ variance in human responses than the visual or the auditory model do.
 
 The optimal model (as well as the auditory and visual baselines) are
 \emph{normative} models. Their predictions are made about human data in
-the bimodal condition, but their crucial parameters (i.e., variances
-associated with the visual and auditory modalities) are derived from
-data in the unimodal conditions. In addition to these normative models,
-we consider a \emph{descriptive} model. It is formally identical to the
-normative optimal model (Equation 1), except that the parameters are fit
-to actual responses in the bimodal condition. If the referential task
-induces sub-optimality (due, for instance, to the arbitrary nature of
-the sound-object association), then the descriptive model should explain
+the bimodal condition, but their parameters (i.e., variances associated
+with the visual and auditory modalities) are derived from data in the
+unimodal conditions. In addition to these normative models, we consider
+a \emph{descriptive} model. It is formally identical to the normative
+optimal model (Equation 1), except that the parameters are fit to actual
+responses in the bimodal condition. If the referential task induces
+sub-optimality (due, for instance, to the arbitrary nature of the
+sound-object association), then the descriptive model should explain
 more variance than the optimal model does.
 
 Comparison of the optimal and the descriptive models allows us, not only
@@ -653,16 +651,17 @@ Figure~\ref{fig:subOptim}, and are as follows:
 
 We compared these models to human responses in three experiments. In
 Experiment 1, we studied the case where bimodal uncertainty was due to
-categorical variability, only. In Experiment 2 and 3 we added auditory
-and visual noise, respectively, on top of categorical variability.
+categorical variability and sensory noise. In Experiment 2 and 3 we
+added envirnmental noise to the auditory and the visual modalities,
+respectively.
 
 \section{Experiment 1}\label{experiment-1}
 
 In this Experiment, we test the predictions of the model in the case
 where uncertainty is due to categorical variability (i.e., ambiguity in
-terms of category membership) and inherent sensory noise only. We do not
-add any external noise to the background. Thus, we use the following cue
-weighting scheme:
+terms of category membership) and inherent sensory noise. We do not add
+any external noise to the background. Thus, we test the following
+(normative) cue weighting scheme:
 
 \[\beta_a \propto \frac{1}{\sigma^2_{A}} = \frac{1}{\sigma^2_{A_C} + \sigma^2_{A_N}}\]
 \[\beta_v \propto \frac{1}{\sigma^2_{V}} = \frac{1}{\sigma^2_{V_C} + \sigma^2_{V_N}}.\]
@@ -775,9 +774,8 @@ statistical power to fit a different model for each individual
 participant (but see Experiment 4). Instead, models were constructed
 with data collapsed across all participants. The fit was done with a
 nonlinear least squares regression using the NLS package in R (Bates \&
-Watts, 1988). We computed the values of the parameters, as well as their
-95\% confidence intervals, through non-parametric bootstrap (using 10000
-iterations).
+Watts, 1988). We computed the values of the parameters using
+non-parametric bootstrap (with 10000 iterations).
 
 \begin{table}
 
@@ -789,10 +787,10 @@ iterations).
 \cmidrule(l{2pt}r{2pt}){2-3} \cmidrule(l{2pt}r{2pt}){4-5} \cmidrule(l{2pt}r{2pt}){6-8}
 Experiment & b\textsubscript{A} & Var\textsubscript{A} & b\textsubscript{V} & Var\textsubscript{V} & b\textsubscript{b} & Var\textsubscript{Ab} & Var\textsubscript{Vb}\\
 \midrule
-Experiment1 & 0.20 & 2.04 & 0.12 & 3.33 & 0.34 & 4.96 & 7.06\\
-Experiment2 & 0.18 & 4.70 & 0.24 & 3.93 & 0.38 & 9.84 & 5.21\\
-Experiment3 & 0.24 & 1.94 & -0.11 & 13.00 & 0.35 & 3.00 & 39.42\\
-Experiment4 & 0.40 & 1.92 & 0.22 & 3.24 & 0.42 & 4.17 & 7.28\\
+Experiment1 & -0.20 & 2.04 & -0.12 & 3.33 & -0.34 & 4.96 & 7.06\\
+Experiment2 & -0.18 & 4.70 & -0.24 & 3.93 & -0.38 & 9.84 & 5.21\\
+Experiment3 & -0.24 & 1.94 & 0.11 & 13.00 & -0.35 & 3.00 & 39.42\\
+Experiment4 & -0.40 & 1.92 & -0.22 & 3.24 & -0.42 & 4.17 & 7.28\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -869,10 +867,10 @@ from the optimal prediction in that they were slightly pulled toward
 chance (i.e., the probability 0.5). This fact was captured by the
 increase in the value of the variance associated with each modality (as
 can be noted from Table \ref{tab:param}). Note, however, that despite
-this increase response randomness in the bimodal condition, our analysis
-of modality preference showed that the \emph{relative} values of these
-variances were not different (Figure~\ref{fig:bias}), meaning that there
-was no evidence for a modality preference.
+this increase in response randomness, our analysis of modality
+preference showed that the \emph{relative} values of these variances
+were not different (Figure~\ref{fig:bias}), meaning that there was no
+evidence for a modality preference.
 
 To sum up, 1) the participants used both the auditory and visual
 information, 2) they responded slightly more randomly that what was
@@ -883,11 +881,11 @@ by the optimal model. This situation corresponds to the first case of
 sub-optimality described in Figure~\ref{fig:subOptim}.
 
 In Experiment 1, we tested word recognition when there was multimodal
-uncertainty in terms of category membership and inherent perceptual
-noise, only. In real life, however, both sound and visual tokens can
-undergo distortions due to noisy factors in the environment (e.g., car
-noise in the background, blurry vision in a foggy weather). In
-Experiment 2 and 3, we explore this additional level of uncertainty.
+uncertainty in terms of category membership and perceptual noise. In
+real life, however, both sound and visual tokens can undergo distortions
+due to noisy factors in the environment (e.g., car noise in the
+background, blurry vision in a foggy weather). In Experiment 2 and 3, we
+explore this additional level of uncertainty.
 
 \section{Experiment 2}\label{experiment-2}
 
@@ -1066,29 +1064,26 @@ over-relied on the auditory modality when the visual modality was noisy
 So far we have studied the problem of cue combination at the population
 level --- the models were fit to the data aggregated across all
 participants. However, it is important to investigate individual
-variability, especially in Experiment 1 where we reported optimal cue
-combination. In fact, it is possible that a large part of the
-participants relied primarily on the visual modality and another part on
-the auditory modality. Such an extreme individual variability could
-possibly lead to an aggregate beahvior which appears optimal, but such
-optimality would be spurious. In order to rule out this extreme case, we
-need to examine the distribution of the specific cue combibination
-strategies followed by the participants.
+variability, especially for cases when we reported optimal cue
+combination (i.e., Experiment 1). In fact, optimality at the population
+level can be spurious if it is obtained only on average while most
+individuals have sub-otimal strategies (e.g., over-relying on the visual
+or the auditory modalities). In Experiment 4, below, we examine how the
+average cue combination relates to individual strategies.
 
 \section{Experiment 4}\label{experiment-4}
 
-As we noted earlier, we did not have enough statistical power to fit a
-different model for each participant. Thus, in the current experiment,
-we re-ran Experiment 1 while extending its length, allowing us to
-collect the number of datapoints necessary to fit the models for each
-participant.
+As we noted earlier, we did not have enough statistical power in
+Experiment 1 to fit a different model for each participant. Thus, we
+used a higher power design, allowing us to collect the number of
+datapoints necessary to model cue combination at the individual level.
 
 \subsubsection{Participants}\label{participants-3}
 
 We recruited a planned sample of \(N=\) 50 participants from Amazon
 Mechanical Turk. Only participants with US IP addresses and a task
 approval rate above 99\% were allowed to participate. They were paid at
-an hourly rate of \$6/hour. Participants were excluded if they reported
+an hourly rate of \$7/hour. Participants were excluded if they reported
 having experienced a technical problem of any sort during the online
 experiment (\(N=\) 0), or if they had less than 75\% accurate responses
 on the unambiguous training trials (\(N=\) 7). The final sample
@@ -1108,11 +1103,11 @@ elicited per subject from 70 to 300, and 2) we randomized the order of
 the three blocks (i.e., visual-only, auditory-only, and audio-visual)
 \emph{within} subject: Each participant saw the 3 blocks exactly 6
 times, covering all possible ordering combinations. Unlike the
-between-subjet randomzation in Experiment 1, this choices allowed us to
-avoid any confounding effects due to the order of exposure.
+between-subjet randomzation that we used in Experiment 1, this choices
+allowed us to avoid a possible confound linked to the order of exposure.
 
 \begin{figure}[!h]
-\includegraphics[width=\textwidth]{ms_files/figure-latex/weights-1} \caption{The histogram shows the distribution of the participants' optimal cue weighing  relative the observed (i.e., descriptive) cue weigting (see Figure 3). Participant are optimal when this relative value is equal to 1 (red solid line). Values larger than 1 suggest over-reliance on the auditory modality whereas values lower than 1 suggest over-reliance on the visual modality. The density plot shows the distribution of simulated individual responses from the population-level probabilistic model. The dashed lines represent 95\% confidence intreval on this simulated distribution. Participants that are outside this interval can be understood as over-relying on the auditory or visual modality in a non-random way (i.e., with p < 0.05).}\label{fig:weights}
+\includegraphics[width=\textwidth]{ms_files/figure-latex/weights-1} \caption{The histogram shows the distribution of the participants' predicted (i.e., optimal) cue weighing relative the observed (i.e., descriptive) weigting (see Figure 3 for the details). The density plot shows the distriubtion of simulated data sampled from the population-level probabilistic model. The dashed lines represent 95\% confidence intreval on this simulated distribution. Optimal beahvior is observed when the value of the relative cue weighing is 1 (red solid line). Participants whose values are outside the confidence interval of the simulated dsitribution over-rely on the visual modalirty (left side) or auditory modality (right side) in a non-random way (i.e., with p < 0.05).}\label{fig:weights}
 \end{figure}
 
 \subsection{Results}\label{results-2}
@@ -1150,7 +1145,7 @@ fall within the 95\% confidence interval of the simulated density,
 showing that this part of the variance can be due to mere sampling
 randomness. However, a few participants had values outide this interval,
 indicating that they systematically over-relied on the visual modality
-(\(N=\) 5) or the auditory modality (\(N=\) 6) with p-value\$
+(\(N=\) 5) or the auditory modality (\(N=\) 6) with p-value \$
 \textless{} 0.05\$.
 
 \subsection{Discussion}\label{discussion-3}
@@ -1169,7 +1164,7 @@ sampling errors.
 
 \section{General Discussion}\label{general-discussion}
 
-In the current paper, we explored word identification under uncertainty
+In the current paper, we explored word recognition under uncertainty
 about both words and their referents. We conducted an ideal observer
 analysis of this task whereby a model provided predictions about how
 information from each modality should be combined in an optimal fashion.
@@ -1201,79 +1196,55 @@ individual level, Experiment 4 showed that most participant were
 near-optimal. Only a few subjects over-relied on the auditory or visual
 modalities beyond sampling errors.
 
-More generally, the idea is that it is easier to integrate correlated,
-redundant cues (e.g., the size of a an object based on both visual and
-haptic information) into a unified percept, than it is to combine
-perceptually uncorrelated cues to make a categorization judgement ,e.g.,
-recognizing a freshly learned object category based on its distinctive
-features such as shape and color. We argue that our task --- which
-consists in combining perceptually uncorrelated cues from the auditory
-and visual modalities to recognize a novel word --- is more similar to
-the second case.
+Despite this overall near-optomal behavior, we documented two major
+cases of sub-optimality. First, in all experiments, the variance
+associated with each modality increased in the bimodal condition
+compared to the unimodal conditions: Participants responded slightly
+more randomly. This increase in randomness could be due limitation on
+cognitive resources: Retaining two separate cues at the same time
+instead of one cue (as in the unimodal case) is likely to place extra
+demands on working memory, causing general performance to drop (see
+Mattys \& Wiget, 2011).
 
-Despite this overall pattern, we documented two major cases of
-sub-optimality. First, in all experiments, the variance associated with
-each modality increased in the bimodal condition compared to the
-unimodal conditions. Participants responded slightly more randomly in
-the bimodal condition than they did in the unimodal conditions. This
-finding contrasts with research on multisensory integration where
-associations tend to lead to a higher precision (e.g., Ernst \& Banks,
-2002). Nevertheless, research on multisensory integration has typically
-dealt with a special case involving correlated, redundant multimodal
-cues, e.g., determining the size of an object based on visual and haptic
-information. Another possible case of multisensory integration involves
-perceptually uncorrelated cues, e.g., recognizing a novel category based
-on some features such as shape and color (e.g., Bankieris et al., 2017)
-or, in our case, recognizing novel words cues based on phonological and
-semantic cues. Perhaps it is harder to integrate uncorreated cues
-because information form these cues must be encoded separately through
-the decision making process. In fact, retaining two separate cues at the
-same time instead of forming one unified percept (as in multisensory
-integration of redundant cues), or instead of retaining only one cue (as
-in the unimodal case), is likely to place extra demands on cognitive
-resources, which, in turn, could cause general performance to drop.
-Indeed, there is evidence that cognitive load due to divided attention
-(e.g., when performing two tasks at the same time) has a detrimental
-effect on word recognition (Mattys \& Wiget, 2011).
-
-Some previous research bas found similar cases of suboptimal behavior.
-For instance, studies that have explored the identification of
-ambiguous, newly learned pairs of word-referent associations have
-reported what appears to be a decrease in speech perception acuity in
-both children (Stager \& Werker, 1997) and adults (Pajak, Creel, \&
-Levy, 2016). Recently, Hofer and Levy (2017) provided a probabilistic
-model of this phenomenon. In agreement with the findings of our study,
-Hofer and Levy (2017) characterized the apparent reduction in perceptual
-acuity as an increase in the noise variance of the auditory modality.
-Our findings, besides providing more evidence to this documented fact,
-suggest that the reduction in perceptual acuity may occur simultaneously
-in both the auditory \emph{and} the visual modalities.
+Previous research bas found similar cases of suboptimal behavior. For
+instance, studies that have explored the identification of ambiguous,
+newly learned pairs of word-referent associations have reported what
+appears to be a decrease in speech perception acuity in both children
+(Stager \& Werker, 1997) and adults (Pajak, Creel, \& Levy, 2016).
+Recently, Hofer and Levy (2017) provided a probabilistic model of this
+phenomenon. In agreement with the findings of our study, Hofer and Levy
+(2017) characterized the apparent reduction in perceptual acuity as an
+increase in the noise variance of the auditory modality. Our findings,
+besides providing more evidence to this documented fact, suggest that
+the reduction in perceptual acuity may occur simultaneously in both the
+auditory \emph{and} the visual modalities.
 
 The second case of sub-optimality is related to how participants
 weighted the cues from the visual and the auditory modalities in a noisy
-context. In contrast to Experiment 1 adn 4 where the combination was
-indistinguishable from the optimal prediction, results of Experiment 2
+context. In contrast to Experiment 1 and 4 where the cue combination was
+indistinguishable from the optimal predictions, results of Experiment 2
 and 3 suggested that participants had a systematic preference for the
-other (non-noisy) modality. This finding aligns with previous work that
-suggests that when the auditory signal is degraded, participants
-compensate by relying more on other sources of information such as the
-accompanying visual cues, the semantic/syntactic context, or the
-top-down expectations. This kind of compensation has been observed with
-adults (Mattys et al., 2012; Tanenhaus et al., 1995), and recent
-evidence suggests that it starts in childhood (K. MacDonald, Marchman,
-Fernald, \& Frank, 2018; Yurovsky, Case, \& Frank, 2017). Generally
-speaking, previous experimental studies have not differentiated between
-an optimal compensatory strategy (i.e., relying more on the alternative
-source while using all information still available in the distorted
-signal), and a sub-optimal strategy (i.e., relying more on the
-alternative source while ignoring at least some of the information still
-available in the distorted signal), however. The formal approach
-followed in this paper allowed us to tease apart these two
-possibilities, and our analysis supports the sub-optimal compensatory
-strategy: The preference for the non-noisy modality is above and beyond
-what can be explained by the relative reliability alone, meaning that
-the participants tend to ignore at least part of the information still
-available in the noisy modality.
+non-noisy modality. This finding is reminiscent of the fact that humans
+tend to compensate for a degraded speech signal by relying more on other
+sources of information such as the accompanying visual cues, the
+semantic/syntactic context, or the top-down expectations. This kind of
+compensation has been observed with adults (Mattys et al., 2012;
+Tanenhaus et al., 1995), and recent evidence suggests that it starts in
+childhood (K. MacDonald, Marchman, Fernald, \& Frank, 2018; Yurovsky,
+Case, \& Frank, 2017).
+
+Generally speaking, previous experimental studies have not
+differentiated between an optimal compensatory strategy (i.e., relying
+more on the alternative source while using all information still
+available in the distorted signal), and a sub-optimal strategy (i.e.,
+relying more on the alternative source while ignoring at least some of
+the information still available in the distorted signal), however. The
+formal approach followed in this paper allowed us to tease apart these
+two possibilities, and our analysis supports the sub-optimal
+compensatory strategy: The preference for the non-noisy modality is
+above and beyond what can be explained by the relative reliability
+alone, meaning that the participants tend to ignore at least part of the
+information still available in the noisy modality.
 
 This second case of sub-optimal behavior may be related to the fact that
 language understanding under degraded conditions is cognitively more
@@ -1301,11 +1272,11 @@ revealed in our controlled study --- scales up to real life situations.
 Note that in order to test audio-visual cue combination under
 uncertainty, we had to use a case of double ambiguity, that is, a case
 where both the word forms (\enquote{ada}--\enquote{aba}) and the
-referents (cat--dog) were similar and, thus, confusable. However, to
-what extent does such a case occur in real languages? Cross-linguistic
-corpus analyses suggest that lexical encoding tends, surprisingly,
-towards double ambiguity in many languages (Dautriche, Mahowald, Gibson,
-\& Piantadosi, 2017; Monaghan, Shillcock, Christiansen, \& Kirby, 2014;
+referents (cat--dog) were similar and, thus, confusable. To what extent
+does such a case occur in real languages? Cross-linguistic corpus
+analyses suggest that lexical encoding tends, surprisingly, towards
+double ambiguity in many languages (Dautriche, Mahowald, Gibson, \&
+Piantadosi, 2017; Monaghan, Shillcock, Christiansen, \& Kirby, 2014;
 Tamariz, 2008). For instance, Dautriche et al. (2017) analyzed 100
 languages and found that words that are similar phonologically tend to
 be similar semantically as well. These studies suggest that the case of
@@ -1320,7 +1291,7 @@ situations.
 
 Though we only studied adult performance in this paper, the problem of
 word recognition under uncertainty is likely more pressing for children.
-In fact, children have greater difficulties differentiating the meanings
+In fact, young children have greater difficulties learning the meanings
 of novel similar-sounding words (e.g., \enquote{bin} vs. \enquote{din}),
 even when these words are uttered very clearly (Creel, 2012; Merriman \&
 Schuster, 1991; Stager \& Werker, 1997; Swingley, 2016; White \& Morgan,
@@ -1355,6 +1326,8 @@ The present study proposes a first step towards a formal framework where
 these sorts of sound-meaning interactions in development can be unified
 and further explored.
 
+\subsection{Limitations}\label{limitations}
+
 One salient limitation of our current work is that we used a restricted
 and highly simplified stimulus set. For the auditory modality, we used
 speech categories that varied along a single acoustic dimension. While
@@ -1364,20 +1337,19 @@ several acoustic/phonetic dimensions. Additionally, these dimensions may
 be highly variable due to various kinds of speaker and context
 differences.
 
-As for the visual modality, simulating meaningful variability is a more
-difficult task. Indeed, parameterizing the semantic space has been a
-notoriously hard problem and thus requires more simplifying assumptions.
-Following previous studies (Freedman et al., 2001; Havy \& Waxman, 2016;
-Sloutsky \& Fisher, 2004), we used a visual continuum along a
-one-dimensional morph. This choice was motivated by the need to
-construct a multimodal input where the auditory and visual components
-are parametrized in a symmetrical fashion, allowing us to compare graded
-effects of auditory and visual information on categorical judgment.
-Though such a visual variability is clearly artificial (one does not
-encounters in real life an animal that is, e.g., 30 \% dog and 70 \%
-cat), we assume that the induced uncertainty form this visual stimuli
-has a similar effect on word recognition as the uncertainty induced by
-more naturalistic semantic variability.
+Concerning the visual dimension, simulating meaningful variability has
+been a notoriousely difficult problem. Following previous studies
+(Freedman et al., 2001; Havy \& Waxman, 2016; Sloutsky \& Fisher, 2004),
+we used a visual continuum along a one-dimensional morph. This
+simplification was motivated by the need to construct a multimodal input
+where the auditory and visual components are parametrized in a
+symmetrical fashion, allowing us to compare graded effects of auditory
+and visual information on categorical judgment. Though such a visual
+variability is clearly artificial (one does not encounters in real life
+an animal that is, e.g., 30 \% dog and 70 \% cat), we assume that the
+induced uncertainty form this visual stimuli has a similar effect on
+word recognition as the uncertainty induced by more naturalistic
+semantic variability.
 
 It is an open question whether people use the same strategy in
 controlled laboratory conditions and more naturalistic settings where
@@ -1390,16 +1362,25 @@ environment (Dupoux, 2018; Fourtassi, Schatz, Varadarajan, \& Dupoux,
 2014; Harwath, Torralba, \& Glass, 2016; B. C. Roy, Frank, DeCamp, \&
 Roy, 2015).
 
-\section{Conclusions}\label{conclusions}
+Finally, though we used the terminology of word recognition, our work is
+only indirectly related to the literature about how a \emph{rich}
+lexicon is accessed (e.g., McClelland \& Elman, 1986). We have used this
+term in a more specific way, describing access to a simplified lexicon
+made of two novel, ambiguous words. Such a simplified experimental
+context is not new and has been crucial to our understanding of early
+word learning and recognition (e.g., Stager \& Werker, 1997).
+
+\section{Conclusions and future research
+directions}\label{conclusions-and-future-research-directions}
 
 Our work provides a formal framework where old and new questions about
-word recognition as well as other categorical tasks involving
-uncorrelated cues can be given a precise formulation. We used a novel
-method which enabled us not only to test for optimality as in prevous
-studies (e.g., Bankieris et al., 2017; Bejjanki et al., 2011), but also
-to examine systamtically how and by how much people deviate from
-optimality in their combination strategies. This exploration is
-important bla bla Rahnev and Denison (2018)
+word recognition can be given a precise formulation. This framework
+enabled us not only to test optimality, but also to examine
+systamtically how and by how much people deviate from optimality in
+their combination strategies. Thus, our work is part of a growing effort
+to go byond optimality tests ---which have limited explanatory power---
+and use models that also allow us to identify and explain various
+patterns of sub-otimlaity in human behavior (Rahnev \& Denison, 2018).
 
 While we focused on the case of arbitrary associations in novel word
 recognition, it is possible to use the same framework to study, for
@@ -1610,6 +1591,11 @@ Knill, D., \& Pouget, A. (2004). The bayesian brain: The role of
 uncertainty in neural coding and computation. \emph{Trends in
 Neurosciences}, \emph{27}(12), 712--719.
 
+\hypertarget{ref-kronrod2016}{}
+Kronrod, Y., Coppess, E., \& Feldman, N. (2016). A unified account of
+categorical effects in phonetic perception. \emph{Psychonomic Bulletin
+\& Review}, \emph{23}(6).
+
 \hypertarget{ref-kuhl1991}{}
 Kuhl, P. K. (1991). Human adults and human infants show a ``perceptual
 magnet effect'' for the prototypes of speech categories, monkeys do not.
@@ -1638,6 +1624,10 @@ recognition. \emph{Journal of Memory and Language}, \emph{65}(2),
 Mattys, S. L., Davis, M. H., Bradlow, A. R., \& Scott, S. K. (2012).
 Speech recognition in adverse conditions: A review. \emph{Language and
 Cognitive Processes}, \emph{27}(7-8), 953--978.
+
+\hypertarget{ref-mcclelland1986}{}
+McClelland, J. L., \& Elman, J. L. (1986). The trace model of speech
+perception. \emph{Cognitive Psychology}, \emph{18}(1).
 
 \hypertarget{ref-mcgurk1976}{}
 McGurk, H., \& MacDonald, J. (1976). Hearing lips and seeing voices.

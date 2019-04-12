@@ -287,7 +287,10 @@ coef_j <- map2(model_by_exp_j, experiment, co_j) %>%
 parameters <- coef_s %>%
   right_join(coef_c) %>%
   right_join(coef_j) %>%
-  select(experiment, bias_s, var_s, bias_c, var_c, bias_j, var_j_s, var_j_c)
+  select(experiment, bias_s, var_s, bias_c, var_c, bias_j, var_j_s, var_j_c) %>%
+  mutate(bias_s = - bias_s,
+         bias_c = - bias_c, 
+         bias_j = - bias_j)
 
 #feather::write_feather(parameters, "saved_data/parameters.feather")
 parameters <- feather::read_feather("saved_data/parameters.feather")
