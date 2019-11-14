@@ -103,6 +103,7 @@ Frank\textsuperscript{1}}
 \usepackage{lineno}
 
 \linenumbers
+\usepackage{xcolor}
 \usepackage[sortcites=false,sorting=none]{biblatex}
 
 \authornote{ Abdellah Fourtassi
@@ -126,7 +127,7 @@ Identifying a spoken word in a referential context requires both the
 ability to integrate multimodal input and the ability to reason under
 uncertainty. How do these tasks interact with one another? We study how
 adults identify novel words under joint uncertainty in the auditory and
-visual modalities, and we propose an ideal observer model of how cues in
+visual modalities and we propose an ideal observer model of how cues in
 these modalities are combined optimally. Model predictions are tested in
 four experiments where recognition is made under various sources of
 uncertainty. We found that participants use both auditory and visual
@@ -345,7 +346,7 @@ experiments where we varied the source of uncertainty. In Experiment 1,
 audio-visual tokens were ambiguous with respect to their category
 membership (in addition to sensory noise). In Experiment 2, we
 intervened by adding environmental noise that degraded information from
-the auditory modality, and in Experiment 3 we intervened by adding
+the auditory modality and in Experiment 3 we intervened by adding
 environmental noise that degraded information from the visual modality.
 Finally, in Experiment 4, we replicated Experiment 1 with a higher power
 design, allowing us to test cue combination at the individual level.
@@ -392,7 +393,7 @@ not two similar tokens are members of the same phonological/semantic
 category. Therefore, testing in our task is category-based: Participants
 are asked to press \enquote{same} if they think the second item (the
 test) belongs to the same category as the first (target) (e.g.,
-dog-/aba/), even if there is a slight difference in the sound, in the
+cat-/aba/), even if there is a slight difference in the sound, in the
 referent, or in both. They are instructed to press \enquote{different}
 only if they think that the second stimulus was an instance of the other
 category (cat-/ada/). The task also includes trials where pictures are
@@ -655,11 +656,11 @@ categorical variability and sensory noise. In Experiment 2 and 3 we
 added environmental noise to the auditory and the visual modalities,
 respectively. Finally, in Experiment 4, we replicated Experiment 1 with
 a higher power design in order to test cue combination at the individual
-level.
+level
 
 \section{Experiment 1}\label{experiment-1}
 
-In this experiment, we test the predictions of the model in the case
+In this Experiment, we test the predictions of the model in the case
 where uncertainty is due to categorical variability (i.e., ambiguity in
 terms of category membership) and inherent sensory noise. We do not add
 any external noise to the background. Thus, we test the following
@@ -815,7 +816,7 @@ tokens. The unimodal models' estimates in each modality are shown in
 Table \ref{tab:param}.
 
 \begin{figure}[!h]
-\includegraphics[width=\textwidth]{ms_files/figure-latex/unimodal-1} \caption{Human responses in the unimodal conditions across the four experiments. Points represent the proportion of `different' to `same' responses in the auditory-only condition (left), and visual-only condition (right). Error bars are 95\% confidence intervals. Solid lines represent best unimodal posterior fits.}\label{fig:unimodal}
+\includegraphics[width=\textwidth]{ms_r2_files/figure-latex/unimodal-1} \caption{Human responses in the unimodal conditions across the four experiments. Points represent the proportion of `different' to `same' responses in the auditory-only condition (left), and visual-only condition (right). Error bars are 95\% confidence intervals. Solid lines represent best unimodal posterior fits.}\label{fig:unimodal}
 \end{figure}
 
 \subsubsection{Bimodal condition}\label{bimodal-condition-1}
@@ -835,12 +836,14 @@ However, the optimal model was not perfect: It explained less variance
 than the descriptive model did, which indicates a deviation from
 optimality. To investigate this deviation, we compare the parameter
 values of the optimal model to the values obtained in the descriptive
-model (Table \ref{tab:param}). We note an increase in \emph{both} the
-auditory and visual variances. This increase in noise is compatible with
-the fact that human responses appear to be pulled towards chance (i.e.,
-the value 0.5) when compared to the optimal model (see Figure
-\ref{fig:bimodal}). Below we investigate if this deviation from
-optimality can be related to the cue combination strategy.
+model (Table
+\ref{tab:param}).\footnote{Note that the descriptive model explained almost all the variance in mean responses, which makes it a reasonable proxy for human real performance in the bimodal condition.}
+We note an increase in \emph{both} the auditory and visual variances.
+This increase in noise is compatible with the fact that human responses
+appear to be pulled towards chance (i.e., the value 0.5) when compared
+to the optimal model (see Figure \ref{fig:bimodal}). Below we
+investigate if this deviation from optimality can be related to the cue
+combination strategy.
 
 \subsubsection{Cue combination}\label{cue-combination}
 
@@ -857,7 +860,7 @@ Indeed, non-parametric resampling of the data showed no evidence of a
 deviation from the optimal prediction (Figure~\ref{fig:bias}, bottom).
 
 \begin{figure}[!h]
-\includegraphics[width=\textwidth]{ms_files/figure-latex/bimodal-1} \caption{Human responses vs. Models' predictions in the bimodal condition across the four experiments. Each point represents data from a particular audio-visual matching (corresponding to an instance from the set of 5x5 possible matchings in the audio-visual space). Shape represents auditory distance from the target, and color represents visual distance from the target. Thus, each point is characterized by both  shape and color.}\label{fig:bimodal}
+\includegraphics[width=\textwidth]{ms_r2_files/figure-latex/bimodal-1} \caption{Human responses vs. Models' predictions in the bimodal condition across the four experiments. Each point represents data from a particular audio-visual matching (corresponding to an instance from the set of 5x5 possible matchings in the audio-visual space). Shape represents auditory distance from the target, and color represents visual distance from the target. Thus, each point is characterized by both  shape and color.}\label{fig:bimodal}
 \end{figure}
 
 \subsection{Discussion}\label{discussion}
@@ -1016,7 +1019,7 @@ previous Experiments.
 \subsection{Results}\label{results-1}
 
 \begin{figure}[!h]
-\includegraphics[width=\textwidth]{ms_files/figure-latex/bias-1} \caption{Modality preference is characterized as a deviation from the optimal decision threshold. A) The decision thresholds of both the optimal and the descriptive models (solid red and black lines, respectively). Deviation from optimality is compared to two hypothetical cases of modality preference. In these cases, deviation from optimality is due to over-lying on the visual or the auditory input by a factor of 2 (green and blue dotted lines, respectively). B) An alternative way to represent the same data. Each point represents the value of the decision threshold's slope derived from the descriptive model relative to that of the optimal model (log-scaled). The lines represent the optimal case as well as the two hypothetical cases of modality preference. Error bars represent 95\% confidence intervals over the distribution obtained through non-parametric resampling.}\label{fig:bias}
+\includegraphics[width=\textwidth]{ms_r2_files/figure-latex/bias-1} \caption{Modality preference is characterized as a deviation from the optimal decision threshold. A) The decision thresholds of both the optimal and the descriptive models (solid red and black lines, respectively). Deviation from optimality is compared to two hypothetical cases of modality preference. In these cases, deviation from optimality is due to over-lying on the visual or the auditory input by a factor of 2 (green and blue dotted lines, respectively). B) An alternative way to represent the same data. Each point represents the value of the decision threshold's slope derived from the descriptive model relative to that of the optimal model (log-scaled). The lines represent the optimal case as well as the two hypothetical cases of modality preference. Error bars represent 95\% confidence intervals over the distribution obtained through non-parametric resampling.}\label{fig:bias}
 \end{figure}
 
 \subsubsection{Unimodal conditions}\label{unimodal-conditions-2}
@@ -1075,15 +1078,7 @@ combination (i.e., Experiment 1). In fact, optimality at the population
 level can be spurious if it is obtained only on average while
 individuals have sub-optimal strategies (e.g., over-relying on the
 visual or the auditory modalities). In Experiment 4, below, we examine
-how the average cue combination relates to individual
-strategies.\footnote{Note that while the claim of (near-)optimality
-  (which we made in Experiment 1) should be verified at the individual
-  level --- since it is possible to have a spurious optimal pattern on
-  average while individuals show suboptimal behavior, it is not
-  necessary to verify sub-optimality (which we found at the population
-  level in Experiments 2 and 3) for every individual --- since a
-  sub-optimal average pattern cannot emerge from a predominantly optimal
-  behavior at the individual level.}
+how the average cue combination relates to individual strategies.
 
 \section{Experiment 4}\label{experiment-4}
 
@@ -1120,7 +1115,7 @@ between-subject randomization that we used in Experiment 1, this choice
 allowed us to avoid a possible confound linked to the order of exposure.
 
 \begin{figure}[!h]
-\includegraphics[width=\textwidth]{ms_files/figure-latex/weights-1} \caption{The histogram shows the distribution of the participants' predicted (i.e., optimal) cue weighting relative the observed (i.e., descriptive) weighting (see Figure 3 for the details). The density plot shows the distribution of simulated data sampled from the population-level probabilistic model. The dashed lines represent 95\% confidence interval on this simulated distribution. Optimal behavior is exactly obtained when the value of the relative cue weighting is 1 (red solid line). Participants whose values are outside the confidence interval of the simulated distribution can be understood to be over-relying on the visual modality (left side) or on the auditory modality (right side) beyond sampling-related variation (i.e., with p < 0.05).}\label{fig:weights}
+\includegraphics[width=\textwidth]{ms_r2_files/figure-latex/weights-1} \caption{The histogram shows the distribution of the participants' predicted (i.e., optimal) cue weighting relative the observed (i.e., descriptive) weighting (see Figure 3 for the details). The density plot shows the distribution of simulated data sampled from the population-level probabilistic model. The dashed lines represent 95\% confidence interval on this simulated distribution. Optimal behavior is exactly obtained when the value of the relative cue weighting is 1 (red solid line). Participants whose values are outside the confidence interval of the simulated distribution can be understood to be over-relying on the visual modality (left side) or on the auditory modality (right side) beyond sampling-related variation (i.e., with p < 0.05).}\label{fig:weights}
 \end{figure}
 
 \subsection{Results}\label{results-2}
@@ -1313,11 +1308,9 @@ Swingley, \& Werker, 2009). Nevertheless, Swingley (2007) suggested that
 the ability to make this differentiation is likely not mature in early
 childhood; children's representations are almost certainly noisier than
 the adults' representations and may also be encoded with lower
-confidence. It is true that the children's lexicon is not as dense in
-terms of the phonological neighborhood as the adults' lexicon is, but it
-is still fairly dense (Coady \& Aslin, 2003). Thus, children even more
-than adults might benefit from additional disambiguating cues during new
-word-referent encoding and recognition.
+confidence. Thus, children even more than adults might benefit from
+additional disambiguating cues during new word-referent encoding and
+recognition.
 
 A multi-modal cue combination strategy might help children not only
 recognize words, but also refine their underlying phonological and
@@ -1343,48 +1336,47 @@ further explored.
 Note, however, that though our framework allows in principle for the
 study of how sound-meaning interaction influences the underlying
 categories, we did not explore this question in the current task. In
-fact, we used familiar categories both at the semantic level (cat and
+fact, we used familiar categories both at the seamantic level (cat and
 dog) and at the phonological level (the phonemes /p/ and /b/). This
-choice allowed us to test the mechanisms of cue integration separately
+choice allowed us to test the mechanims of cue integration separately
 from the question of category learning. Using novel categories would
 create a confound as participant would additionally have to learn the
 boundaries of the novel categories, making it difficult for us to tease
 apart how much of the suboptimal behavior is due to the difficulty of
-audio-visual integration and how much it is due to the difficulty of
-estimating the boundaries of the novel categories.
+audio-visual integration, and how much it is due to variability in
+estimating the boundary of the novel categories.
 
 Though our task deals primarily with the mechanism of word recognition,
-the conclusions of the current study could potentially apply to some
-word learning situations as well. While the typical task in the word
-learning literature involves mapping a new label to a novel object
-(e.g., Landau, Smith, \& Jones, 1988; Markman, 1991), several cases of
-word learning in the wild involve familiar objects (as in our task). For
-example, adults learning a second language do map new labels to objects
-that are already familiar to them. Besides, children come to the task of
-word learning with fairly refined knowledge about semantic categories,
-at least in the case of basic-level object categories (e.g., Quinn,
-Eimas, \& Rosenkrantz, 1993). That is, in many situations, they do not
-associate new labels with objects that they see for the first time (or
-for that matter, labels that they hear for the first time). Rather, they
-often map familiar sequences of phonemes onto concepts that they have
-refined over the course of earlier exposures (e.g., Bloom, 2000).
+the conclusions of the current study partially applies to word learning
+as well. While the typical task in the word learning literature involves
+mapping a new label to a novel object (e.g., Landau, Smith, \& Jones,
+1988; Markman, 1991), several cases of word learning in the wild involve
+familiar object (as in our task). For example, adults learning a second
+language do map new labels to objects that are already familiar to them.
+Besides, children come to the task of word learning with a fairly
+refined knowledge about the semantic categories (e.g., Quinn, Eimas, \&
+Rosenkrantz, 1993). That is, in several cases, they do not associate new
+labels with objects that they are seeing for the first time. Rather,
+they map labels onto concepts that they have refined over the course of
+earlier exposures (e.g., Bloom, 2000).
 
-Our task was an adaptation of a task introduced originally by Sloutsky
-and Napolitano (2003). This original work is part of a rich literature
-about modality-dominance in cross-modal processing (Colavita, 1974;
-Robinson \& Sloutsky, 2010). Generally speaking, this literature
-suggests that, when presented with an audio-visual stimulus, adults pay
+Finally, our task was an adaptation of a task introduced originally by
+Sloutsky and Napolitano (2003). This original work is part of a rich
+literature on modality-dominance in coross-modal processing (e.g.,
+Colavita, 1974; Robinson \& Sloutsky, 2010). Overall, this litartaure
+suggests that, when presented with au audio-visual stimuli, adults pay
 more attention to the visual component whereas children may pay more
 attention to the auditory component (Barnhart, Rivera, \& Robinson,
 2018; Hirst, Cragg, \& Allen, 2018). Our work shows that adults do not
-systematically prefer one modality over the other. Rather, they modulate
-this preference as a function of noise (Experiments 2 and 3). That said,
-it is important to keep in mind that while the literature on
-modality-dominance deals with low-level perceptual encoding, our task
-targets specifically high-level linguistic categorization. It is
-possible that the underlying mechanisms in both cases are related (or
-even similar). However, as it stands, our work cannot speak to this
-possibility.
+systematicallty prefere one modality over the other. Rather, they
+modulate this preference as a functon of noise (Experiment 2 and 3).
+That said, it is important to keep in mind that our task differs in its
+design and aim from the tasks used in this literature: While the
+literature on modality-dominance deals with low-level perceptual
+encoding, our task targets specifically high-level linguistic processing
+and categorizaton. It is possible that the underlying mechanisms in both
+cases are related (or even similar). However, we did not explore this
+possibility in the current study.
 
 \subsection{Limitations}\label{limitations}
 
@@ -1422,7 +1414,7 @@ environment (Dupoux, 2018; Fourtassi, Schatz, Varadarajan, \& Dupoux,
 2014; Harwath, Torralba, \& Glass, 2016; B. C. Roy, Frank, DeCamp, \&
 Roy, 2015).
 
-Finally, though we used the term \enquote{word recognition,} our work is
+Finally, though we used the term \enquote{word recognition}, our work is
 only indirectly related to the literature about how a rich lexicon is
 accessed (e.g., McClelland \& Elman, 1986). We have used this term in a
 more specific way, describing access to a simplified lexicon made of two
@@ -1568,10 +1560,6 @@ processing and acquisition. \emph{Trends in Cognitive Sciences},
 Clayards, M., Tanenhaus, M., Aslin, R., \& Jacobs, R. (2008). Perception
 of speech reflects optimal use of probabilistic speech cues.
 \emph{Cognition}, \emph{108}.
-
-\hypertarget{ref-coady2003}{}
-Coady, J. A., \& Aslin, R. N. (2003). Phonological neighbourhoods in the
-developing lexicon. \emph{Journal of Child Language}, \emph{30}(2).
 
 \hypertarget{ref-colavita1974}{}
 Colavita, F. B. (1974). Human sensory dominance. \emph{Attention,
